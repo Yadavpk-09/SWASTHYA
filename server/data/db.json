@@ -229,6 +229,43 @@
         "b-first-step"
       ],
       "status": "active"
+    },
+    {
+      "id": "usr-1791105999004",
+      "name": "aman",
+      "email": "aman1982@gmail.com",
+      "phone": "5976624855",
+      "address": "jaaksdiaifsjckjis",
+      "passwordHash": "$2a$10$UbqIa1vKzEGIZ8e8stuhpeMYDXQqViDQjfvBJk63X02aPs0hPMqwm",
+      "authProvider": "local",
+      "role": "user",
+      "profile": {
+        "phone": "5976624855",
+        "address": "jaaksdiaifsjckjis",
+        "emergencyContact": "",
+        "age": 22,
+        "gender": "other",
+        "height": 170,
+        "weight": 65,
+        "bmi": 22.5,
+        "bmiCategory": "Normal weight",
+        "goal": "General Fitness",
+        "activityLevel": "Lightly Active",
+        "availableDays": 3,
+        "injuries": [],
+        "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=aman"
+      },
+      "points": 100,
+      "currentStreak": 1,
+      "longestStreak": 1,
+      "level": 1,
+      "assignedPlanId": "plan-1",
+      "createdAt": "2026-10-04T09:26:39.004Z",
+      "lastActiveAt": "2026-10-04T09:26:39.004Z",
+      "earnedBadges": [
+        "b-first-step"
+      ],
+      "status": "active"
     }
   ],
   "exercises": [
@@ -4191,6 +4228,19 @@
     {
       "id": "well-usr-1791099694258-2026-10-04",
       "userId": "usr-1791099694258",
+      "date": "2026-10-04",
+      "water_ml": 0,
+      "water_goal": 2500,
+      "sleepHours": 0,
+      "sleepQuality": "Good",
+      "sleepTime": "23:00",
+      "wakeTime": "07:00",
+      "mood": "Focused",
+      "meals": []
+    },
+    {
+      "id": "well-usr-1791105999004-2026-10-04",
+      "userId": "usr-1791105999004",
       "date": "2026-10-04",
       "water_ml": 0,
       "water_goal": 2500,

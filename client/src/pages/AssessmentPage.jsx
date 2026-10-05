@@ -107,8 +107,8 @@ export const AssessmentPage = ({ onComplete }) => {
   return (
     <div style={{
       maxWidth: '780px',
-      margin: '30px auto',
-      padding: '0 20px 40px',
+      margin: 'clamp(14px, 3vw, 30px) auto',
+      padding: '0 clamp(10px, 3vw, 20px) 40px',
       display: 'flex',
       flexDirection: 'column',
       gap: '24px'
@@ -126,12 +126,12 @@ export const AssessmentPage = ({ onComplete }) => {
         </p>
 
         {/* Step dots */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{
-                width: '32px',
-                height: '32px',
+                width: '30px',
+                height: '30px',
                 borderRadius: '50%',
                 background: step === s
                   ? 'var(--emerald-primary)'
@@ -140,18 +140,20 @@ export const AssessmentPage = ({ onComplete }) => {
                   : 'rgba(255, 255, 255, 0.08)',
                 color: '#ffffff',
                 fontWeight: 700,
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}>
-                {step > s ? <CheckCircle2 size={18} /> : s}
+                {step > s ? <CheckCircle2 size={16} /> : s}
               </div>
               {s < 4 && (
                 <div style={{
-                  width: '36px',
+                  width: 'clamp(16px, 4vw, 32px)',
                   height: '2px',
-                  background: step > s ? 'var(--emerald-primary)' : 'rgba(255, 255, 255, 0.1)'
+                  background: step > s ? 'var(--emerald-primary)' : 'rgba(255, 255, 255, 0.1)',
+                  flexShrink: 0
                 }} />
               )}
             </div>

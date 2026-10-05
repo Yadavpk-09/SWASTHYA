@@ -67,8 +67,8 @@ export const ExerciseLibraryPage = () => {
         </div>
 
         {/* Filter Pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Muscle:</span>
+        <div className="scroll-x-touch" style={{ alignItems: 'center' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', flexShrink: 0 }}>Muscle:</span>
           {muscleGroups.map((m) => (
             <button
               key={m}
@@ -81,7 +81,9 @@ export const ExerciseLibraryPage = () => {
                 color: selectedMuscle === m ? '#34d399' : 'var(--text-secondary)',
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}
             >
               {m}
@@ -125,7 +127,7 @@ export const ExerciseLibraryPage = () => {
       </div>
 
       {/* Exercises Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+      <div className="grid-cards-responsive">
         {exercises.map((exercise) => (
           <div
             key={exercise.id}

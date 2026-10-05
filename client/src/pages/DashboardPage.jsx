@@ -79,7 +79,7 @@ export const DashboardPage = ({ setActiveTab }) => {
         background: 'linear-gradient(135deg, rgba(19, 27, 46, 0.9) 0%, rgba(13, 21, 38, 0.9) 100%)',
         border: '1px solid var(--border-glass-bright)',
         borderRadius: '24px',
-        padding: '28px 32px',
+        padding: 'clamp(18px, 4vw, 30px)',
         position: 'relative',
         overflow: 'hidden',
         boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.6)'
@@ -134,7 +134,7 @@ export const DashboardPage = ({ setActiveTab }) => {
       </div>
 
       {/* 4 Stat Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="grid-stats-cards">
         {/* Streak */}
         <div className="glass-panel" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -249,7 +249,7 @@ export const DashboardPage = ({ setActiveTab }) => {
       </div>
 
       {/* Main Row: Assigned Workout Hero + Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1.2fr)', gap: '20px' }}>
+      <div className="grid-dashboard-layout">
         {/* Today's Workout Card */}
         <div className="glass-panel" style={{ padding: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
@@ -319,7 +319,7 @@ export const DashboardPage = ({ setActiveTab }) => {
             </div>
           </div>
 
-          <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setRunnerOpen(true)}
               className="btn-primary"

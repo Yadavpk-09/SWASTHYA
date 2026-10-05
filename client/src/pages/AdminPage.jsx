@@ -356,7 +356,7 @@ export const AdminPage = () => {
       </div>
 
       {/* Admin Subtabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px', flexWrap: 'wrap' }}>
+      <div className="scroll-x-touch" style={{ borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
         {[
           { id: 'overview', label: 'Platform Metrics (FR12.5)' },
           { id: 'users', label: `Users (${usersList.length}) (FR12.2, FR12.6)` },
@@ -379,6 +379,8 @@ export const AdminPage = () => {
               fontWeight: 700,
               fontSize: '0.825rem',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               transition: 'all 0.2s ease'
             }}
           >
@@ -390,7 +392,7 @@ export const AdminPage = () => {
       {/* Tab: Overview Metrics */}
       {activeAdminTab === 'overview' && stats && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          <div className="grid-stats-cards">
             <div className="glass-panel" style={{ padding: '20px' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                 Total Registered Athletes

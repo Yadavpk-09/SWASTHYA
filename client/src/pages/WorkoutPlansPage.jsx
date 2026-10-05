@@ -74,8 +74,8 @@ export const WorkoutPlansPage = () => {
 
       {/* Filter Bar */}
       <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="scroll-x-touch" style={{ alignItems: 'center', flex: 1, minWidth: '240px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <Filter size={16} />
             <span>Goal:</span>
           </span>
@@ -91,7 +91,9 @@ export const WorkoutPlansPage = () => {
                 color: selectedGoal === g ? '#34d399' : 'var(--text-secondary)',
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}
             >
               {g}
@@ -116,7 +118,7 @@ export const WorkoutPlansPage = () => {
       </div>
 
       {/* Plans Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+      <div className="grid-cards-responsive">
         {filteredPlans.map((plan) => {
           const isAssigned = user?.assignedPlanId === plan.id;
           const isExpanded = expandedPlanId === plan.id;

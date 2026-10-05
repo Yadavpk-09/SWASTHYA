@@ -71,10 +71,10 @@ export const FitBotChatDrawer = () => {
         onClick={() => setIsOpen(!isOpen)}
         style={{
           position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          width: '56px',
-          height: '56px',
+          bottom: 'clamp(16px, 3vw, 24px)',
+          right: 'clamp(16px, 3vw, 24px)',
+          width: '54px',
+          height: '54px',
           borderRadius: '50%',
           background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
           border: 'none',
@@ -97,15 +97,15 @@ export const FitBotChatDrawer = () => {
       {isOpen && (
         <div style={{
           position: 'fixed',
-          bottom: '90px',
-          right: '24px',
+          bottom: 'clamp(76px, 10vw, 88px)',
+          right: 'clamp(10px, 3vw, 24px)',
           width: '380px',
-          maxWidth: 'calc(100vw - 32px)',
+          maxWidth: 'calc(100vw - 20px)',
           height: '520px',
-          maxHeight: 'calc(100vh - 120px)',
+          maxHeight: 'calc(100vh - 105px)',
           background: '#0d1424',
           border: '1px solid var(--border-glass-bright)',
-          borderRadius: '20px',
+          borderRadius: '18px',
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7)',
           display: 'flex',
           flexDirection: 'column',
@@ -228,12 +228,9 @@ export const FitBotChatDrawer = () => {
           </div>
 
           {/* Quick Prompts */}
-          <div style={{
+          <div className="scroll-x-touch" style={{
             padding: '8px 12px',
             borderTop: '1px solid var(--border-glass)',
-            display: 'flex',
-            gap: '6px',
-            overflowX: 'auto',
             background: 'rgba(11, 16, 28, 0.6)'
           }}>
             {suggestedChips.map((chip, idx) => (

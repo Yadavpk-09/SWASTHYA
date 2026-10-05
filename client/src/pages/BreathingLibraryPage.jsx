@@ -260,10 +260,8 @@ export const BreathingLibraryPage = () => {
 
         {/* Animated Orb */}
         <div
+          className="breathing-orb"
           style={{
-            width: '210px',
-            height: '210px',
-            borderRadius: '50%',
             background: isInhale
               ? 'radial-gradient(circle, #34d399 0%, #059669 65%, #064e3b 100%)'
               : isExhale
@@ -376,7 +374,7 @@ export const BreathingLibraryPage = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           {/* Situation Tag Filter (FR6.4) */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="scroll-x-touch" style={{ flex: 1, minWidth: '220px' }}>
             {tagsList.map((tag) => (
               <button
                 key={tag}
@@ -390,7 +388,9 @@ export const BreathingLibraryPage = () => {
                   fontWeight: 600,
                   fontSize: '0.825rem',
                   textTransform: 'capitalize',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
                 }}
               >
                 {tag}
@@ -413,11 +413,7 @@ export const BreathingLibraryPage = () => {
         </div>
 
         {/* Techniques Grid (FR6.1, FR6.2) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '18px'
-        }}>
+        <div className="grid-cards-responsive">
           {filteredTechniques.map((tech) => {
             const isSelected = activeTechnique?.id === tech.id;
             return (

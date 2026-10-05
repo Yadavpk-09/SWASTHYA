@@ -96,13 +96,7 @@ export const LeaderboardPage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Top 3 Podium */}
           {top3.length >= 3 && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
-              alignItems: 'flex-end',
-              paddingTop: '20px'
-            }}>
+            <div className="podium-grid">
               {/* #2 Silver */}
               <div className="glass-panel" style={{
                 padding: '24px 16px',
@@ -208,7 +202,7 @@ export const LeaderboardPage = () => {
           )}
 
           {/* Full Table */}
-          <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+          <div className="glass-panel table-responsive-wrapper" style={{ padding: '20px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
@@ -299,7 +293,7 @@ export const LeaderboardPage = () => {
 
       {/* Badges Showcase Tab */}
       {tab === 'badges' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <div className="grid-cards-responsive">
           {badgesData.badges.map((b) => (
             <div
               key={b.id}

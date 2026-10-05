@@ -6,31 +6,13 @@ export const ExerciseDetailModal = ({ exercise, onClose }) => {
   if (!exercise) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(5, 8, 16, 0.85)',
-      backdropFilter: 'blur(12px)',
-      zIndex: 100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px'
-    }}>
-      <div style={{
-        background: '#0e1628',
-        border: '1px solid var(--border-glass-bright)',
-        borderRadius: '20px',
-        width: '100%',
+    <div className="modal-overlay">
+      <div className="modal-content-card" style={{
         maxWidth: '680px',
-        maxHeight: '90vh',
         overflowY: 'auto',
-        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
-        padding: '28px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        position: 'relative'
+        padding: 'clamp(16px, 4vw, 28px)',
+        position: 'relative',
+        gap: '20px'
       }}>
         {/* Close Button */}
         <button

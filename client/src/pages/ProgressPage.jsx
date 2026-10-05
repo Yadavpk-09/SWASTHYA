@@ -216,7 +216,7 @@ export const ProgressPage = () => {
       </div>
 
       {/* Metric Tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+      <div className="grid-stats-cards">
         <div className="glass-panel" style={{ padding: '20px' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
             Workouts Logged
@@ -267,7 +267,7 @@ export const ProgressPage = () => {
       </div>
 
       {/* WEEKLY TREND GRAPHS (PRD FR8.2 & FR8.4) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+      <div className="grid-charts-responsive">
         {/* Weight over weeks graph (FR8.2) */}
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

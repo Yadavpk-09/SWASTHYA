@@ -383,7 +383,7 @@ export const ProfilePage = ({ setActiveTab }) => {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {/* Full Name & Email */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="grid-2col-responsive">
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                       Full Name
@@ -420,7 +420,7 @@ export const ProfilePage = ({ setActiveTab }) => {
                 </div>
 
                 {/* Phone & Emergency Contact */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="grid-2col-responsive">
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                       Phone Number
@@ -484,7 +484,7 @@ export const ProfilePage = ({ setActiveTab }) => {
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                <div className="grid-4col-responsive">
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                       Age
@@ -544,7 +544,7 @@ export const ProfilePage = ({ setActiveTab }) => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '12px' }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                       Primary Goal

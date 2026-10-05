@@ -49,7 +49,7 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
       </div>
 
       {/* Triad Quick Action Cards: Breathing, Meditation & Stress Roadmap */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '16px' }}>
         <div
           onClick={() => setActiveTab('breathing')}
           className="glass-panel"
@@ -209,8 +209,8 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
               />
             </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Category:</span>
+        <div className="scroll-x-touch" style={{ alignItems: 'center' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', flexShrink: 0 }}>Category:</span>
           {categories.map((c) => (
             <button
               key={c}
@@ -223,7 +223,9 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
                 color: selectedCategory === c ? '#34d399' : 'var(--text-secondary)',
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}
             >
               {c}
@@ -233,7 +235,7 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
       </div>
 
       {/* Asanas Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+      <div className="grid-cards-responsive">
         {asanas.map((asana) => (
           <div
             key={asana.id}

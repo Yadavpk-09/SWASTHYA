@@ -46,7 +46,7 @@ export const WellnessPage = () => {
       </div>
 
       {/* Sub Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+      <div className="scroll-x-touch" style={{ borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
         {[
           { id: 'all', label: 'Overview Dashboard' },
           { id: 'water', label: 'Hydration' },
@@ -64,7 +64,9 @@ export const WellnessPage = () => {
               color: activeSubTab === tab.id ? '#ffffff' : 'var(--text-secondary)',
               fontWeight: 600,
               fontSize: '0.85rem',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
             }}
           >
             {tab.label}
@@ -74,7 +76,7 @@ export const WellnessPage = () => {
 
       {/* Content Layout */}
       {activeSubTab === 'all' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '20px' }}>
           <WaterTracker todayLog={wellnessData?.today} onRefresh={fetchWellness} />
           <SleepTracker todayLog={wellnessData?.today} weeklyLogs={wellnessData?.weekly} onRefresh={fetchWellness} />
           <div style={{ gridColumn: '1 / -1' }}>

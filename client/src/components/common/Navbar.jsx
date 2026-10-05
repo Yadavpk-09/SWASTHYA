@@ -20,8 +20,7 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
   const [personaOpen, setPersonaOpen] = useState(false);
 
   return (
-    <header style={{
-      height: '70px',
+    <header className="navbar-header" style={{
       background: 'rgba(11, 15, 25, 0.85)',
       backdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--border-glass)',
@@ -30,11 +29,10 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
       zIndex: 40,
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 24px'
+      justifyContent: 'space-between'
     }}>
       {/* Left: Brand & Mobile hamburger */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           style={{
@@ -54,25 +52,26 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
 
         <div
           onClick={() => setActiveTab('dashboard')}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
         >
           <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '12px',
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
             background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+            flexShrink: 0
           }}>
-            <HeartPulse size={22} color="#ffffff" />
+            <HeartPulse size={20} color="#ffffff" />
           </div>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{
               fontFamily: 'var(--font-heading)',
               fontWeight: 800,
-              fontSize: '1.25rem',
+              fontSize: '1.15rem',
               letterSpacing: '-0.02em',
               background: 'linear-gradient(to right, #ffffff, #a7f3d0)',
               WebkitBackgroundClip: 'text',
@@ -80,12 +79,12 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
             }}>
               SWASTHYA
             </span>
-            <span style={{
+            <span className="hide-on-xs" style={{
               fontSize: '0.65rem',
               fontWeight: 700,
               color: 'var(--emerald-primary)',
               background: 'rgba(16, 185, 129, 0.12)',
-              padding: '1px 6px',
+              padding: '1px 5px',
               borderRadius: '999px',
               marginLeft: '6px',
               border: '1px solid rgba(16, 185, 129, 0.25)'
@@ -97,20 +96,20 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
       </div>
 
       {/* Right: Gamification stats + Persona switcher + User profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Streak counter */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '5px',
           background: 'rgba(239, 68, 68, 0.1)',
           border: '1px solid rgba(239, 68, 68, 0.25)',
-          padding: '6px 12px',
+          padding: '5px 10px',
           borderRadius: '999px'
         }}>
-          <Flame size={18} color="#ef4444" fill="#ef4444" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fca5a5' }}>
-            {user?.currentStreak || 1}d Streak
+          <Flame size={16} color="#ef4444" fill="#ef4444" />
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fca5a5' }}>
+            {user?.currentStreak || 1}<span className="hide-on-xs">d Streak</span>
           </span>
         </div>
 
@@ -118,19 +117,17 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '5px',
           background: 'rgba(245, 158, 11, 0.1)',
           border: '1px solid rgba(245, 158, 11, 0.25)',
-          padding: '6px 12px',
+          padding: '5px 10px',
           borderRadius: '999px'
         }}>
-          <Zap size={18} color="#f59e0b" fill="#f59e0b" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fcd34d' }}>
-            {user?.points || 0} pts
+          <Zap size={16} color="#f59e0b" fill="#f59e0b" />
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fcd34d' }}>
+            {user?.points || 0}<span className="hide-on-xs"> pts</span>
           </span>
         </div>
-
-
 
         {/* User avatar & dropdown */}
         <div style={{ position: 'relative' }}>
@@ -142,7 +139,7 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               padding: '4px'
             }}
           >
@@ -151,8 +148,8 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
                 src={user.profile.avatarUrl}
                 alt={user?.name}
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '34px',
+                  height: '34px',
                   borderRadius: '50%',
                   objectFit: 'cover',
                   border: '2px solid var(--emerald-primary)'
@@ -161,8 +158,8 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
             ) : (
               <div
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '34px',
+                  height: '34px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
                   display: 'flex',
@@ -170,14 +167,14 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
                   justifyContent: 'center',
                   color: '#ffffff',
                   fontWeight: 700,
-                  fontSize: '0.85rem',
+                  fontSize: '0.8rem',
                   border: '2px solid var(--emerald-primary)'
                 }}
               >
-                {user?.name ? user.name.slice(0, 2).toUpperCase() : <User size={18} />}
+                {user?.name ? user.name.slice(0, 2).toUpperCase() : <User size={16} />}
               </div>
             )}
-            <ChevronDown size={16} color="var(--text-secondary)" />
+            <ChevronDown size={14} color="var(--text-secondary)" />
           </button>
 
           {dropdownOpen && (
@@ -187,6 +184,7 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
                 top: '120%',
                 right: 0,
                 width: '210px',
+                maxWidth: 'calc(100vw - 20px)',
                 background: '#131b2e',
                 border: '1px solid var(--border-glass-bright)',
                 borderRadius: '12px',

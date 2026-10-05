@@ -133,29 +133,8 @@ export const WorkoutRunnerModal = ({ plan, dayNumber = 1, onClose, onWorkoutComp
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(5, 8, 16, 0.88)',
-      backdropFilter: 'blur(16px)',
-      zIndex: 100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px'
-    }}>
-      <div style={{
-        background: '#0d1527',
-        border: '1px solid var(--border-glass-bright)',
-        borderRadius: '20px',
-        width: '100%',
-        maxWidth: '920px',
-        maxHeight: '90vh',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.7)',
-        overflow: 'hidden'
-      }}>
+    <div className="modal-overlay">
+      <div className="modal-content-card" style={{ maxWidth: '920px' }}>
         {/* Header */}
         <div style={{
           padding: '18px 24px',
@@ -220,14 +199,9 @@ export const WorkoutRunnerModal = ({ plan, dayNumber = 1, onClose, onWorkoutComp
         </div>
 
         {/* Modal Body */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(260px, 320px) 1fr',
-          flex: 1,
-          overflow: 'hidden'
-        }}>
+        <div className="workout-runner-body">
           {/* Left: Exercises List Navigation */}
-          <div style={{
+          <div className="workout-runner-sidebar" style={{
             borderRight: '1px solid var(--border-glass)',
             padding: '16px',
             overflowY: 'auto',

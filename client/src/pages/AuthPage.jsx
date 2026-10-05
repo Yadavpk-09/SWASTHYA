@@ -272,7 +272,7 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '24px',
+      padding: 'clamp(12px, 3vw, 24px)',
       position: 'relative',
       background: isThemeAdmin
         ? 'radial-gradient(circle at 50% 20%, #0f172a 0%, #020617 100%)'
@@ -308,7 +308,7 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
       <div className="glass-panel" style={{
         width: '100%',
         maxWidth: '520px',
-        padding: '38px 34px',
+        padding: 'clamp(22px, 5vw, 36px) clamp(16px, 4vw, 32px)',
         position: 'relative',
         zIndex: 10,
         borderColor: isThemeAdmin ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)',
