@@ -66,7 +66,6 @@ export const WorkoutPlansPage = () => {
             Structured Periodization Engine
           </span>
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Curated Workout Plans</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Science-backed training programs mapped by muscle recovery splits, progressive overload, and goal targets.
         </p>
@@ -120,7 +119,7 @@ export const WorkoutPlansPage = () => {
       {/* Plans Grid */}
       <div className="grid-cards-responsive">
         {filteredPlans.map((plan) => {
-          const isAssigned = user?.assignedPlanId === plan.id;
+          const isAssigned = user?.assignedPlanId === plan.id || user?.assignedExercisePlanId === plan.id;
           const isExpanded = expandedPlanId === plan.id;
 
           return (

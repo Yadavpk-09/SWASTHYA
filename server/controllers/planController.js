@@ -68,7 +68,8 @@ export const assignPlan = async (req, res) => {
     }
 
     const updatedUser = db.updateById('users', req.user.id, {
-      assignedPlanId: planId
+      assignedPlanId: planId,
+      assignedExercisePlanId: planId
     });
 
     const { passwordHash: _, ...safeUser } = updatedUser;

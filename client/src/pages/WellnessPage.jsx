@@ -1,18 +1,14 @@
 // client/src/pages/WellnessPage.jsx
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api.js';
-import { Droplet, Moon, Utensils, Music, Sparkles } from 'lucide-react';
+import { Droplet, Moon, Sparkles } from 'lucide-react';
 import { WaterTracker } from '../components/wellness/WaterTracker.jsx';
 import { SleepTracker } from '../components/wellness/SleepTracker.jsx';
-import { DietLog } from '../components/wellness/DietLog.jsx';
 
 export const WellnessPage = () => {
   const [activeSubTab, setActiveSubTab] = useState('all');
   const [wellnessData, setWellnessData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Ambient sound generator via Web Audio API (white noise / binaural waves)
-  const [audioPlaying, setAudioPlaying] = useState(null);
 
   const fetchWellness = async () => {
     try {
@@ -39,9 +35,8 @@ export const WellnessPage = () => {
             Holistic Lifestyle Bio-Telemetry
           </span>
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Wellness & Recovery Tracker</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-          Daily metrics for somatic recovery: hydration balance, circadian sleep cycles, and mindful dietary logs.
+          Daily metrics for somatic recovery: hydration balance and circadian sleep cycles.
         </p>
       </div>
 
@@ -50,8 +45,7 @@ export const WellnessPage = () => {
         {[
           { id: 'all', label: 'Overview Dashboard' },
           { id: 'water', label: 'Hydration' },
-          { id: 'sleep', label: 'Sleep & Rest' },
-          { id: 'diet', label: 'Diet & Calories' }
+          { id: 'sleep', label: 'Sleep & Rest' }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -76,12 +70,9 @@ export const WellnessPage = () => {
 
       {/* Content Layout */}
       {activeSubTab === 'all' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '24px' }}>
           <WaterTracker todayLog={wellnessData?.today} onRefresh={fetchWellness} />
           <SleepTracker todayLog={wellnessData?.today} weeklyLogs={wellnessData?.weekly} onRefresh={fetchWellness} />
-          <div style={{ gridColumn: '1 / -1' }}>
-            <DietLog todayLog={wellnessData?.today} onRefresh={fetchWellness} />
-          </div>
         </div>
       )}
 
@@ -94,12 +85,6 @@ export const WellnessPage = () => {
       {activeSubTab === 'sleep' && (
         <div style={{ maxWidth: '650px', margin: '0 auto', width: '100%' }}>
           <SleepTracker todayLog={wellnessData?.today} weeklyLogs={wellnessData?.weekly} onRefresh={fetchWellness} />
-        </div>
-      )}
-
-      {activeSubTab === 'diet' && (
-        <div style={{ maxWidth: '850px', margin: '0 auto', width: '100%' }}>
-          <DietLog todayLog={wellnessData?.today} onRefresh={fetchWellness} />
         </div>
       )}
     </div>

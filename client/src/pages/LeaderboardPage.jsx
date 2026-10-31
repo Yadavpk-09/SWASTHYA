@@ -42,7 +42,6 @@ export const LeaderboardPage = () => {
             College Campus League
           </span>
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Gamification & Leaderboard</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Compete with fellow campus peers, log daily workouts and wellness habits, and unlock prestigious tier badges.
         </p>

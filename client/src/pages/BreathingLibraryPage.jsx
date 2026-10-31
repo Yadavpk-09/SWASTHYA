@@ -217,12 +217,9 @@ export const BreathingLibraryPage = () => {
         }}>
           <Wind size={18} />
           <span style={{ fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Pranayama & Neuro-Somatic Regulation (Module 6)
+            Pranayama & Neuro-Somatic Regulation
           </span>
         </div>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px', color: '#f8fafc' }}>
-          Breathing Techniques
-        </h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', fontSize: '0.95rem', lineHeight: 1.5 }}>
           Master authentic yogic and clinical breathwork patterns to modulate heart rate variability,
           suppress sympathetic cortisol, and enter peak mental states.

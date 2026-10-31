@@ -1,6 +1,6 @@
-// client/src/pages/AssessmentPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 import { api } from '../services/api.js';
 import { PlanSummaryPage } from './PlanSummaryPage.jsx';
 import {
@@ -18,11 +18,27 @@ import {
 } from 'lucide-react';
 
 export const AssessmentPage = ({ onComplete }) => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUserState } = useAuth();
+  const { showToast } = useToast();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [planPackage, setPlanPackage] = useState(null);
+
+  // For users who have already generated their plan, fetch their current package
+  useEffect(() => {
+    if (user?.hasCompletedAssessment && !planPackage) {
+      api.assessment.getCurrent()
+        .then((data) => {
+          if (data && (data.exercisePlan || data.dietPlan)) {
+            setPlanPackage(data);
+          }
+        })
+        .catch((err) => {
+          console.warn('Could not load current plan package:', err);
+        });
+    }
+  }, [user?.hasCompletedAssessment]);
 
   // Form State - Module 2 (FR2.1)
   const [age, setAge] = useState(user?.profile?.age || 22);
@@ -79,11 +95,48 @@ export const AssessmentPage = ({ onComplete }) => {
       };
 
       const res = await api.assessment.submit(payload);
+
+      // 1. Immediately update user in context with new assignedPlanId
+      if (res.user && updateUserState) {
+        updateUserState(res.user);
+      }
+
+      // 2. Explicitly assign exercise plan for redundancy and immediate activation
+      const exercisePlanId = res.planPackage?.exercisePlan?.id || res.planPackage?.exercisePlanId;
+      if (exercisePlanId) {
+        try {
+          const assignRes = await api.plans.assign(exercisePlanId);
+          if (assignRes?.user && updateUserState) {
+            updateUserState(assignRes.user);
+          }
+        } catch (assignErr) {
+          console.warn('Assign sync:', assignErr);
+        }
+      }
+
       if (refreshUser) await refreshUser();
 
-      setPlanPackage(res.planPackage);
+      const planTitle = res.planPackage?.exercisePlan?.title || 'Personalized Swasthya Routine';
+
+      showToast({
+        type: 'success',
+        title: 'Swasthya Plan Synthesized & Assigned!',
+        message: `"${planTitle}" has been generated. Review your roadmap below or enter your dashboard!`
+      });
+
+      // Display the generated plan summary package with goals & roadmap
+      if (res.planPackage) {
+        setPlanPackage(res.planPackage);
+      } else if (onComplete) {
+        onComplete();
+      }
     } catch (err) {
       console.error('Assessment submission failed:', err);
+      showToast({
+        type: 'error',
+        title: 'Calculation Error',
+        message: err.message || 'Failed to calculate Swasthya plan.'
+      });
     } finally {
       setLoading(false);
     }
@@ -115,13 +168,28 @@ export const AssessmentPage = ({ onComplete }) => {
     }}>
       {/* Header and Step Progress */}
       <div style={{ textAlign: 'center' }}>
+        {(!user?.hasCompletedAssessment || user?.isNewUser) && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ fontSize: '1.25rem', color: '#f8fafc', fontWeight: 800, marginBottom: '6px' }}>
+              ✨ Welcome to SWASTHYA, {user?.name?.split(' ')[0] || 'Athlete'}!
+            </h2>
+            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
+              Let's craft your personalized future plan, workouts, yoga routines, and goals. Fill out the steps below to initialize your engine.
+            </p>
+          </div>
+        )}
+
         <span className="badge-pill badge-emerald" style={{ marginBottom: '8px' }}>
-          Personalized Requirement Assessment (Module 2)
+          Personalized Requirement Assessment
         </span>
-        <h1 style={{ fontSize: '2rem', color: '#f8fafc', marginTop: '6px', marginBottom: '4px' }}>
-          Design Your Swasthya Journey
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '6px' }}>
           Accurate metrics allow our engine to generate your tri-domain plan in one pass.
         </p>
 
@@ -246,7 +314,7 @@ export const AssessmentPage = ({ onComplete }) => {
             }}>
               <div>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Auto-Computed Body Mass Index (FR2.2)
+                  Auto-Computed Body Mass Index
                 </div>
                 <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f8fafc', marginTop: '2px' }}>
                   {bmiVal} <span style={{ fontSize: '0.9rem', color: '#34d399', fontWeight: 600 }}>({bmiCat})</span>
@@ -423,7 +491,7 @@ export const AssessmentPage = ({ onComplete }) => {
                 Stress & Sleep Evaluation
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-                PRD Module 3 Rule: Elevated stress or poor sleep unlocks a targeted meditation protocol.
+                Elevated stress or poor sleep patterns unlock a targeted meditation and relaxation protocol.
               </p>
             </div>
 
@@ -549,7 +617,7 @@ export const AssessmentPage = ({ onComplete }) => {
               style={{ padding: '12px 28px', fontSize: '1rem' }}
             >
               <Sparkles size={18} />
-              <span>{loading ? 'Evaluating Requirements...' : 'Generate Swasthya Plan'}</span>
+              <span>{loading ? 'Calculating & Assigning...' : 'Calculate & Assign My Swasthya Plan'}</span>
             </button>
           )}
         </div>

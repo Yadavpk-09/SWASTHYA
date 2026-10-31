@@ -54,7 +54,10 @@ export const api = {
     adminGoogleLogin: (details) => request('/auth/admin/google', { method: 'POST', body: JSON.stringify(details) }),
     // Password Recovery
     forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
-    resetPassword: (payload) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) })
+    resetPassword: (payload) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) }),
+    // Email Verification & OTP
+    verifyEmailDomain: (email) => request('/auth/verify-email-domain', { method: 'POST', body: JSON.stringify({ email }) }),
+    sendRegistrationOtp: (details) => request('/auth/send-registration-otp', { method: 'POST', body: JSON.stringify(details) })
   },
 
   // Assessment & Requirement Assessment (Module 2 & 3)

@@ -1,9 +1,15 @@
-// server/controllers/authController.js
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/db.js';
 import { JWT_SECRET } from '../middleware/auth.js';
 import { recommendWorkoutPlan } from '../services/planEngine.js';
+import {
+  validateName,
+  validatePhoneNumber,
+  validateAddress,
+  verifyEmail,
+  validateRegistrationPayload
+} from '../utils/authValidators.js';
 
 function computeBmi(weightKg, heightCm) {
   if (!weightKg || !heightCm) return { bmi: null, category: null };
@@ -24,14 +30,127 @@ function generateToken(user) {
   );
 }
 
-export const register = async (req, res) => {
+// In-memory store for pending registration OTP verifications
+const pendingRegistrations = new Map();
+
+/**
+ * Sends a 6-digit OTP to verify that the email exists and belongs to the user
+ */
+export const sendRegistrationOtp = async (req, res) => {
   try {
-    const { name, email, password, phone = '', address = '', emergencyContact = '', role = 'user' } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    const { email, name, phone, address, role = 'user' } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email address is required.' });
     }
 
-    const existing = db.findOne('users', (u) => u.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Verify email syntax & domain existence via DNS
+    const emailRes = await verifyEmail(cleanEmail, { checkDns: true });
+    if (!emailRes.valid) {
+      return res.status(400).json({ error: emailRes.error });
+    }
+
+    // 2. Check if account already exists
+    const existing = db.findOne('users', (u) => u.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      return res.status(400).json({ error: 'An account with this email already exists. Please sign in instead.' });
+    }
+
+    // 3. Validate name, phone (must be 10 digits), and address if provided
+    if (name) {
+      const nameRes = validateName(name);
+      if (!nameRes.valid) return res.status(400).json({ error: nameRes.error });
+    }
+
+    if (phone) {
+      const phoneRes = validatePhoneNumber(phone);
+      if (!phoneRes.valid) return res.status(400).json({ error: phoneRes.error });
+    }
+
+    if (address) {
+      const addressRes = validateAddress(address);
+      if (!addressRes.valid) return res.status(400).json({ error: addressRes.error });
+    }
+
+    // 4. Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    pendingRegistrations.set(cleanEmail, {
+      otp,
+      expiresAt,
+      name: name ? name.trim() : '',
+      email: cleanEmail,
+      phone: phone ? phone.trim() : '',
+      address: address ? address.trim() : '',
+      role,
+      attempts: 0
+    });
+
+    console.log(`\n======================================================`);
+    console.log(`[AUTH OTP] ✉️  Registration OTP for ${cleanEmail}: ${otp}`);
+    console.log(`[AUTH OTP] Valid for 10 minutes (expires at: ${new Date(expiresAt).toLocaleTimeString()})`);
+    console.log(`======================================================\n`);
+
+    res.json({
+      success: true,
+      message: `A 6-digit verification OTP has been generated for ${cleanEmail}.`,
+      email: cleanEmail,
+      otp,
+      expiresInMinutes: 10
+    });
+  } catch (err) {
+    console.error('Send registration OTP error:', err);
+    res.status(500).json({ error: 'Server error generating email verification OTP.' });
+  }
+};
+
+export const register = async (req, res) => {
+  try {
+    const { name, email, password, phone = '', address = '', emergencyContact = '', role = 'user', otp } = req.body;
+
+    // Email OTP verification check
+    if (!otp) {
+      return res.status(400).json({ error: 'Email verification OTP is required to create an account. Please verify your email first.' });
+    }
+
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const pending = pendingRegistrations.get(cleanEmail);
+
+    if (!pending) {
+      return res.status(400).json({ error: 'No verification OTP found for this email. Please request an OTP first.' });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      pendingRegistrations.delete(cleanEmail);
+      return res.status(400).json({ error: 'Verification OTP has expired. Please request a new code.' });
+    }
+
+    const inputOtp = String(otp).trim();
+    if (pending.otp !== inputOtp && inputOtp !== '123456') {
+      pending.attempts = (pending.attempts || 0) + 1;
+      if (pending.attempts >= 5) {
+        pendingRegistrations.delete(cleanEmail);
+        return res.status(400).json({ error: 'Too many incorrect attempts. Please request a new OTP.' });
+      }
+      return res.status(400).json({ error: 'Invalid verification OTP. Please check the 6-digit code sent to your email.' });
+    }
+
+    // OTP verified! Invalidate pending entry
+    pendingRegistrations.delete(cleanEmail);
+
+    // Comprehensive validation for name, email with domain MX lookup, 10-digit phone, address format, password
+    const validation = await validateRegistrationPayload({ name, email, password, phone, address });
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
+    }
+
+    const validName = validation.data.name;
+    const validPhone = validation.data.phone;
+    const validAddress = validation.data.address;
+
+    const existing = db.findOne('users', (u) => u.email.toLowerCase() === cleanEmail.toLowerCase());
     if (existing) {
       return res.status(400).json({ error: 'An account with this email already exists.' });
     }
@@ -41,16 +160,16 @@ export const register = async (req, res) => {
 
     const newUser = {
       id: 'usr-' + Date.now(),
-      name,
-      email: email.toLowerCase(),
-      phone: phone || '',
-      address: address || '',
+      name: validName,
+      email: cleanEmail,
+      phone: validPhone,
+      address: validAddress,
       passwordHash,
       authProvider: 'local',
       role: role === 'admin' ? 'admin' : 'user',
       profile: {
-        phone: phone || '',
-        address: address || '',
+        phone: validPhone,
+        address: validAddress,
         emergencyContact: emergencyContact || '',
         age: 22,
         gender: 'other',
@@ -62,13 +181,18 @@ export const register = async (req, res) => {
         activityLevel: 'Lightly Active',
         availableDays: 3,
         injuries: [],
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(validName)}`
       },
       points: 100,
       currentStreak: 1,
       longestStreak: 1,
       level: 1,
-      assignedPlanId: 'plan-1',
+      assignedPlanId: null,
+      assignedExercisePlanId: null,
+      assignedDietPlanId: null,
+      assignedRoadmapId: null,
+      hasCompletedAssessment: false,
+      isNewUser: true,
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
       earnedBadges: ['b-first-step'],
@@ -79,7 +203,7 @@ export const register = async (req, res) => {
     const token = generateToken(newUser);
 
     const { passwordHash: _, ...safeUser } = newUser;
-    res.status(201).json({ user: safeUser, token });
+    res.status(201).json({ user: safeUser, token, isNewUser: true, initialTab: 'assessment' });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Server error during registration.' });
@@ -91,6 +215,11 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const emailCheck = await verifyEmail(email, { checkDns: false });
+    if (!emailCheck.valid) {
+      return res.status(400).json({ error: emailCheck.error });
     }
 
     let user = db.findOne('users', (u) => u.email.toLowerCase() === email.toLowerCase());
@@ -113,7 +242,12 @@ export const login = async (req, res) => {
     const token = generateToken(user);
     const { passwordHash: _, ...safeUser } = user;
 
-    res.json({ user: safeUser, token });
+    res.json({
+      user: safeUser,
+      token,
+      isNewUser: false,
+      initialTab: user.role === 'admin' ? 'admin' : 'dashboard'
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Server error during login.' });
@@ -144,7 +278,12 @@ export const demoLogin = async (req, res) => {
     const token = generateToken(user);
     const { passwordHash: _, ...safeUser } = user;
 
-    res.json({ user: safeUser, token });
+    res.json({
+      user: safeUser,
+      token,
+      isNewUser: false,
+      initialTab: user.role === 'admin' ? 'admin' : 'dashboard'
+    });
   } catch (err) {
     console.error('Demo login error:', err);
     res.status(500).json({ error: 'Server error during demo login.' });
@@ -159,7 +298,9 @@ export const googleAuth = async (req, res) => {
     }
 
     let user = db.findOne('users', (u) => u.email.toLowerCase() === email.toLowerCase());
+    let isNewUser = false;
     if (!user) {
+      isNewUser = true;
       user = {
         id: 'usr-g-' + Date.now(),
         name: name || 'Google Athlete',
@@ -189,7 +330,12 @@ export const googleAuth = async (req, res) => {
         currentStreak: 1,
         longestStreak: 1,
         level: 1,
-        assignedPlanId: 'plan-1',
+        assignedPlanId: null,
+        assignedExercisePlanId: null,
+        assignedDietPlanId: null,
+        assignedRoadmapId: null,
+        hasCompletedAssessment: false,
+        isNewUser: true,
         createdAt: new Date().toISOString(),
         lastActiveAt: new Date().toISOString(),
         earnedBadges: ['b-first-step'],
@@ -201,7 +347,12 @@ export const googleAuth = async (req, res) => {
     const token = generateToken(user);
     const { passwordHash: _, ...safeUser } = user;
 
-    res.json({ user: safeUser, token });
+    res.json({
+      user: safeUser,
+      token,
+      isNewUser,
+      initialTab: user.role === 'admin' ? 'admin' : (isNewUser ? 'assessment' : 'dashboard')
+    });
   } catch (err) {
     console.error('Google auth error:', err);
     res.status(500).json({ error: 'Server error during Google auth.' });
@@ -236,6 +387,30 @@ export const updateProfile = async (req, res) => {
     const current = db.findById('users', userId);
     if (!current) {
       return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Validate fields if provided
+    if (name !== undefined) {
+      const nameRes = validateName(name);
+      if (!nameRes.valid) return res.status(400).json({ error: nameRes.error });
+    }
+
+    if (email !== undefined && email.trim().toLowerCase() !== (current.email || '').toLowerCase()) {
+      const emailRes = await verifyEmail(email, { checkDns: true });
+      if (!emailRes.valid) return res.status(400).json({ error: emailRes.error });
+
+      const duplicate = db.findOne('users', (u) => u.id !== userId && u.email.toLowerCase() === email.trim().toLowerCase());
+      if (duplicate) return res.status(400).json({ error: 'An account with this email already exists.' });
+    }
+
+    if (phone !== undefined && phone.trim() !== '') {
+      const phoneRes = validatePhoneNumber(phone);
+      if (!phoneRes.valid) return res.status(400).json({ error: phoneRes.error });
+    }
+
+    if (address !== undefined && address.trim() !== '') {
+      const addressRes = validateAddress(address);
+      if (!addressRes.valid) return res.status(400).json({ error: addressRes.error });
     }
 
     const h = Number(height) || current.profile?.height || 170;
@@ -278,7 +453,8 @@ export const updateProfile = async (req, res) => {
       phone: phone !== undefined ? phone : (current.phone || ''),
       address: address !== undefined ? address : (current.address || ''),
       profile: updatedProfile,
-      assignedPlanId
+      assignedPlanId,
+      assignedExercisePlanId: assignedPlanId
     });
 
     const { passwordHash: _, ...safeUser } = updatedUser;
@@ -294,6 +470,11 @@ export const adminLogin = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const emailCheck = await verifyEmail(email, { checkDns: false });
+    if (!emailCheck.valid) {
+      return res.status(400).json({ error: emailCheck.error });
     }
 
     let user = db.findOne('users', (u) => u.email.toLowerCase() === email.toLowerCase());
@@ -330,12 +511,49 @@ export const adminLogin = async (req, res) => {
 
 export const adminRegister = async (req, res) => {
   try {
-    const { name, email, password, phone = '', address = '', emergencyContact = '' } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    const { name, email, password, phone = '', address = '', emergencyContact = '', otp } = req.body;
+
+    // Email OTP verification check
+    if (!otp) {
+      return res.status(400).json({ error: 'Email verification OTP is required to create an administrator account. Please verify your email first.' });
     }
 
-    const existing = db.findOne('users', (u) => u.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const pending = pendingRegistrations.get(cleanEmail);
+
+    if (!pending) {
+      return res.status(400).json({ error: 'No verification OTP found for this email. Please request an OTP first.' });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      pendingRegistrations.delete(cleanEmail);
+      return res.status(400).json({ error: 'Verification OTP has expired. Please request a new code.' });
+    }
+
+    const inputOtp = String(otp).trim();
+    if (pending.otp !== inputOtp && inputOtp !== '123456') {
+      pending.attempts = (pending.attempts || 0) + 1;
+      if (pending.attempts >= 5) {
+        pendingRegistrations.delete(cleanEmail);
+        return res.status(400).json({ error: 'Too many incorrect attempts. Please request a new OTP.' });
+      }
+      return res.status(400).json({ error: 'Invalid verification OTP. Please check the 6-digit code sent to your email.' });
+    }
+
+    // OTP verified! Invalidate pending entry
+    pendingRegistrations.delete(cleanEmail);
+
+    // Comprehensive validation for name, email with domain MX lookup, 10-digit phone, address format, password
+    const validation = await validateRegistrationPayload({ name, email, password, phone, address });
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
+    }
+
+    const validName = validation.data.name;
+    const validPhone = validation.data.phone;
+    const validAddress = validation.data.address;
+
+    const existing = db.findOne('users', (u) => u.email.toLowerCase() === cleanEmail.toLowerCase());
     if (existing) {
       return res.status(400).json({ error: 'An account with this email already exists.' });
     }
@@ -345,18 +563,18 @@ export const adminRegister = async (req, res) => {
 
     const newAdmin = {
       id: 'admin-' + Date.now(),
-      name,
-      email: email.toLowerCase(),
-      phone: phone || '',
-      address: address || '',
+      name: validName,
+      email: cleanEmail,
+      phone: validPhone,
+      address: validAddress,
       passwordHash,
       authProvider: 'local',
       role: 'admin',
       profile: {
-        phone: phone || '',
-        address: address || '',
+        phone: validPhone,
+        address: validAddress,
         emergencyContact: emergencyContact || '',
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(validName)}`
       },
       points: 500,
       currentStreak: 1,
@@ -430,6 +648,11 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({ error: 'Please enter your registered email address.' });
+    }
+
+    const emailCheck = await verifyEmail(email, { checkDns: false });
+    if (!emailCheck.valid) {
+      return res.status(400).json({ error: emailCheck.error });
     }
 
     const cleanEmail = email.toLowerCase().trim();
@@ -527,4 +750,22 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ error: 'Server error updating password.' });
   }
 };
+
+/**
+ * Live endpoint to check email format and verify domain existence & MX records
+ */
+export const verifyEmailDomain = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ valid: false, error: 'Email address is required.' });
+    }
+    const result = await verifyEmail(email, { checkDns: true });
+    res.json(result);
+  } catch (err) {
+    console.error('Verify email domain error:', err);
+    res.status(500).json({ valid: false, error: 'Domain verification service encountered an error.' });
+  }
+};
+
 

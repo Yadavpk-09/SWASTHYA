@@ -138,12 +138,9 @@ export const NutritionPage = () => {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#fbbf24', marginBottom: '8px' }}>
           <Utensils size={20} />
           <span style={{ fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Bio-Energetic Nutrition Telemetry (Module 10)
+            Bio-Energetic Nutrition Telemetry
           </span>
         </div>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px', color: '#f8fafc' }}>
-          Smart Calorie & Nutrition Tracker
-        </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Real-time macro accounting matched to your personalized Swasthya Diet Plan ({nutritionData?.dietPlanTitle}).
         </p>
@@ -175,7 +172,7 @@ export const NutritionPage = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#fbbf24', letterSpacing: '0.05em' }}>
-              Remaining Daily Dietary Target (FR10.3)
+              Remaining Daily Dietary Target
             </div>
             <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc', marginTop: '2px' }}>
               {nutritionData?.summaryText || `You need ${remaining.protein_g}g more protein and ${remaining.fiber_g}g more fiber today.`}
@@ -294,7 +291,7 @@ export const NutritionPage = () => {
       {/* Smart Food Search & Auto Macro Logger (FR10.1 & FR10.2) */}
       <div className="glass-panel" style={{ padding: '24px' }}>
         <h3 style={{ fontSize: '1.15rem', color: '#f8fafc', marginBottom: '4px' }}>
-          Instant Food Macro Search (FR10.1 & FR10.2)
+          Instant Food Macro Search
         </h3>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px' }}>
           Search any seeded food item. System automatically calculates calories, protein, carbs, fat, and fiber with zero manual typing.
@@ -493,7 +490,7 @@ export const NutritionPage = () => {
       {/* 7-Day Nutrition History View (FR10.4) */}
       <div className="glass-panel" style={{ padding: '24px' }}>
         <h3 style={{ fontSize: '1.15rem', color: '#f8fafc', marginBottom: '6px' }}>
-          7-Day Caloric & Protein History (FR10.4)
+          7-Day Caloric & Protein History
         </h3>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '18px' }}>
           Weekly rolling intake trends compared against your personalized dietary target.

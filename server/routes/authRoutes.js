@@ -10,11 +10,16 @@ import {
   adminRegister,
   adminGoogleAuth,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  verifyEmailDomain,
+  sendRegistrationOtp
 } from '../controllers/authController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Email verification & registration OTP
+router.post('/send-registration-otp', sendRegistrationOtp);
 
 // User auth endpoints
 router.post('/register', register);
@@ -23,6 +28,9 @@ router.post('/demo-login', demoLogin);
 router.post('/google', googleAuth);
 router.get('/me', authenticateToken, getMe);
 router.put('/profile', authenticateToken, updateProfile);
+
+// Real-time email & domain verification
+router.post('/verify-email-domain', verifyEmailDomain);
 
 // Password recovery endpoints (applicable for both User and Admin)
 router.post('/forgot-password', forgotPassword);

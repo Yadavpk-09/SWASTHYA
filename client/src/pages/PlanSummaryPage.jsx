@@ -1,5 +1,7 @@
 // client/src/pages/PlanSummaryPage.jsx
 import React from 'react';
+import { api } from '../services/api.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import {
   Sparkles,
   Dumbbell,
@@ -15,6 +17,7 @@ import {
 } from 'lucide-react';
 
 export const PlanSummaryPage = ({ planPackage, onEnterDashboard, onRetake }) => {
+  const { updateUserState } = useAuth();
   if (!planPackage) return null;
 
   const { exercisePlan, dietPlan, meditationRecommended, stressRoadmap, isMeditationIncluded } = planPackage;
@@ -52,19 +55,27 @@ export const PlanSummaryPage = ({ planPackage, onEnterDashboard, onRetake }) => 
           marginBottom: '12px'
         }}>
           <Sparkles size={14} />
-          <span>Requirement Assessment Complete (Module 3 - FR3.2)</span>
+          <span>Requirement Assessment Complete</span>
         </div>
 
-        <h1 style={{ fontSize: '2.2rem', color: '#f8fafc', marginBottom: '8px' }}>
-          Your Swasthya Plan Package
-        </h1>
         <p style={{ color: '#cbd5e1', fontSize: '1rem', maxWidth: '650px', margin: '0 auto 20px', lineHeight: 1.5 }}>
           Our multi-domain decision engine evaluated your physical metrics, stress levels, and sleep patterns
           to synthesize your custom tripartite roadmap.
         </p>
 
         <button
-          onClick={onEnterDashboard}
+          onClick={async () => {
+            const planId = exercisePlan?.id;
+            if (planId) {
+              try {
+                const res = await api.plans.assign(planId);
+                if (res?.user && updateUserState) updateUserState(res.user);
+              } catch (e) {
+                console.warn('Plan assignment error:', e);
+              }
+            }
+            if (onEnterDashboard) onEnterDashboard();
+          }}
           className="btn-primary"
           style={{
             padding: '14px 36px',
@@ -274,7 +285,7 @@ export const PlanSummaryPage = ({ planPackage, onEnterDashboard, onRetake }) => 
             </h3>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               Your assessment shows Low Stress & Sound Sleep! The decision engine skipped intensive meditation
-              protocols (FR3.1). You can still access relaxing asanas anytime in the Yoga Library.
+              protocols. You can still access relaxing asanas anytime in the Yoga Library.
             </p>
           </div>
         )}

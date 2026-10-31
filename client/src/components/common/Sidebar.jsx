@@ -13,7 +13,8 @@ import {
   Trophy,
   ShieldCheck,
   UserCheck,
-  HelpCircle
+  HelpCircle,
+  HeartPulse
 } from 'lucide-react';
 
 export const Sidebar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
@@ -55,19 +56,68 @@ export const Sidebar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }
       )}
 
       <aside className={`sidebar-panel ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        {/* Top Brand Header (Totally Left) */}
+        <div
+          onClick={() => {
+            setActiveTab('dashboard');
+            setSidebarOpen(false);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '0 8px',
+            margin: '0 -14px 12px -14px',
+            borderBottom: '1px solid var(--border-glass)',
+            background: 'rgba(11, 15, 25, 0.7)',
+            cursor: 'pointer',
+            height: '70px',
+            boxSizing: 'border-box'
+          }}
+        >
+          <div style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+            flexShrink: 0,
+            marginLeft: '8px'
+          }}>
+            <HeartPulse size={20} color="#ffffff" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 800,
+              fontSize: '1.2rem',
+              letterSpacing: '-0.02em',
+              background: 'linear-gradient(to right, #ffffff, #a7f3d0)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              SWASTHYA
+            </span>
+            <span style={{
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              color: 'var(--emerald-primary)',
+              background: 'rgba(16, 185, 129, 0.12)',
+              padding: '1px 6px',
+              borderRadius: '999px',
+              marginLeft: '6px',
+              border: '1px solid rgba(16, 185, 129, 0.25)'
+            }}>
+              v2.0
+            </span>
+          </div>
+        </div>
+
         {/* Navigation list */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
-          <div style={{
-            fontSize: '0.7rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: 'var(--text-muted)',
-            padding: '4px 12px 8px 12px',
-            fontWeight: 700
-          }}>
-            Platform Modules
-          </div>
-
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;

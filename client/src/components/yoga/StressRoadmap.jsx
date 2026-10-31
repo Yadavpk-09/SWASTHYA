@@ -108,12 +108,9 @@ export const StressRoadmap = ({ onSelectAsana, onStartBreathing }) => {
         }}>
           <Brain size={18} />
           <span style={{ fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Adaptive Neuro-Somatic Protocol (Module 7)
+            Adaptive Neuro-Somatic Protocol
           </span>
         </div>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px', color: '#f8fafc' }}>
-          Stress Management Roadmap
-        </h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', fontSize: '0.95rem', lineHeight: 1.5 }}>
           Select your stress category to explore a step-wise sequence. Hover or tap each node to understand
           why each intervention is placed at that exact physiological point in the chain.

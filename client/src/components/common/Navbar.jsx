@@ -19,6 +19,22 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [personaOpen, setPersonaOpen] = useState(false);
 
+  const tabTitles = {
+    dashboard: 'Athlete Dashboard',
+    assessment: 'My Swasthya Plan',
+    plans: 'Curated Workout Plans',
+    exercises: 'Exercise Library',
+    yoga: 'Yoga & Asanas',
+    breathing: 'Breathing Techniques',
+    stress: 'Stress Management Roadmap',
+    nutrition: 'Smart Nutrition Tracker',
+    progress: 'Weekly Weight & Progress',
+    wellness: 'Water & Sleep Tracker',
+    leaderboard: 'Badges & Leaderboard',
+    profile: 'Profile & Settings',
+    admin: 'Admin Console'
+  };
+
   return (
     <header className="navbar-header" style={{
       background: 'rgba(11, 15, 25, 0.85)',
@@ -31,7 +47,7 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
       alignItems: 'center',
       justifyContent: 'space-between'
     }}>
-      {/* Left: Brand & Mobile hamburger */}
+      {/* Left: Mobile hamburger + Mobile brand / Desktop Section Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -50,14 +66,16 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
           {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
+        {/* Mobile Brand (visible when sidebar is hidden on small screens) */}
         <div
           onClick={() => setActiveTab('dashboard')}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+          style={{ alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+          className="lg-hidden"
         >
           <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
             background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
             display: 'flex',
             alignItems: 'center',
@@ -65,13 +83,13 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
             boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
             flexShrink: 0
           }}>
-            <HeartPulse size={20} color="#ffffff" />
+            <HeartPulse size={18} color="#ffffff" />
           </div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{
               fontFamily: 'var(--font-heading)',
               fontWeight: 800,
-              fontSize: '1.15rem',
+              fontSize: '1.05rem',
               letterSpacing: '-0.02em',
               background: 'linear-gradient(to right, #ffffff, #a7f3d0)',
               WebkitBackgroundClip: 'text',
@@ -79,7 +97,7 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
             }}>
               SWASTHYA
             </span>
-            <span className="hide-on-xs" style={{
+            <span style={{
               fontSize: '0.65rem',
               fontWeight: 700,
               color: 'var(--emerald-primary)',
@@ -93,6 +111,35 @@ export const Navbar = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen })
             </span>
           </div>
         </div>
+
+        {/* Desktop Active Page Title */}
+        <div className="lg-visible" style={{ alignItems: 'center' }}>
+          <h1 style={{
+            margin: 0,
+            fontSize: '1.45rem',
+            fontWeight: 800,
+            fontFamily: 'var(--font-heading)',
+            color: '#ffffff',
+            letterSpacing: '-0.025em',
+            lineHeight: 1.2
+          }}>
+            {tabTitles[activeTab] || 'Dashboard'}
+          </h1>
+        </div>
+
+        {/* Mobile Active Page Title */}
+        <span className="lg-hidden" style={{
+          fontSize: '1.05rem',
+          fontWeight: 700,
+          color: '#f8fafc',
+          marginLeft: '6px',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          maxWidth: '150px'
+        }}>
+          {tabTitles[activeTab] || 'Dashboard'}
+        </span>
       </div>
 
       {/* Right: Gamification stats + Persona switcher + User profile */}

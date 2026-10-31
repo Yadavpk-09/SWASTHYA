@@ -24,6 +24,12 @@ import {
   Zap,
   Activity
 } from 'lucide-react';
+import {
+  validateName,
+  validateEmailFormat,
+  validatePhoneNumber,
+  validateAddress
+} from '../utils/authValidators.js';
 
 export const ProfilePage = ({ setActiveTab }) => {
   const { user, updateProfile } = useAuth();
@@ -138,6 +144,55 @@ export const ProfilePage = ({ setActiveTab }) => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (name) {
+      const nameRes = validateName(name);
+      if (!nameRes.valid) {
+        showToast({
+          type: 'error',
+          title: 'Invalid Name',
+          message: nameRes.error
+        });
+        return;
+      }
+    }
+
+    if (email) {
+      const emailRes = validateEmailFormat(email);
+      if (!emailRes.valid) {
+        showToast({
+          type: 'error',
+          title: 'Invalid Email Format',
+          message: emailRes.error
+        });
+        return;
+      }
+    }
+
+    if (phone && phone.trim()) {
+      const phoneRes = validatePhoneNumber(phone);
+      if (!phoneRes.valid) {
+        showToast({
+          type: 'error',
+          title: 'Invalid Phone Number',
+          message: phoneRes.error
+        });
+        return;
+      }
+    }
+
+    if (address && address.trim()) {
+      const addressRes = validateAddress(address);
+      if (!addressRes.valid) {
+        showToast({
+          type: 'error',
+          title: 'Invalid Address Format',
+          message: addressRes.error
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const injuriesList = injuries.trim()
@@ -145,10 +200,10 @@ export const ProfilePage = ({ setActiveTab }) => {
         : [];
 
       await updateProfile({
-        name,
-        email,
-        phone,
-        address,
+        name: name ? name.trim() : undefined,
+        email: email ? email.trim().toLowerCase() : undefined,
+        phone: phone ? phone.trim() : '',
+        address: address ? address.trim() : '',
         emergencyContact,
         age: Number(age),
         gender,
@@ -185,9 +240,6 @@ export const ProfilePage = ({ setActiveTab }) => {
             Account Management & Biometrics
           </span>
         </div>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px', color: '#f8fafc' }}>
-          User Profile & Personal Settings
-        </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Manage your personal details, profile picture, contact credentials, and health metrics. 
           Your workout and diet targets dynamically adapt to changes made here.
@@ -422,9 +474,20 @@ export const ProfilePage = ({ setActiveTab }) => {
                 {/* Phone & Emergency Contact */}
                 <div className="grid-2col-responsive">
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Phone Number
-                    </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        Phone Number
+                      </label>
+                      {phone.trim() && (
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          color: validatePhoneNumber(phone).valid ? 'var(--emerald-primary)' : '#f59e0b'
+                        }}>
+                          Digits: {phone.replace(/\D/g, '').length} {validatePhoneNumber(phone).valid ? '(Valid 10-Digit)' : '(Min 10)'}
+                        </span>
+                      )}
+                    </div>
                     <div style={{ position: 'relative' }}>
                       <Phone size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                       <input
@@ -458,9 +521,20 @@ export const ProfilePage = ({ setActiveTab }) => {
 
                 {/* Address / Campus Residence */}
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Residential Address / Campus Hostel Location
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      Residential Address / Campus Hostel Location
+                    </label>
+                    {address.trim() && (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        color: validateAddress(address).valid ? 'var(--emerald-primary)' : '#f59e0b'
+                      }}>
+                        {address.trim().length} chars (Min 10)
+                      </span>
+                    )}
+                  </div>
                   <div style={{ position: 'relative' }}>
                     <MapPin size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                     <input

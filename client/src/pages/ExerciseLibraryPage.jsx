@@ -45,7 +45,6 @@ export const ExerciseLibraryPage = () => {
             Verified Movement Biomechanics
           </span>
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Exercise Library</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Accredited kinematic form instructions, muscle engagement breakdowns, and common error corrections to eliminate injury risk.
         </p>

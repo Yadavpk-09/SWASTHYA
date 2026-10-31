@@ -4,8 +4,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../services/api.js';
 import {
   Flame,
-  Zap,
-  Scale,
   Droplets,
   Dumbbell,
   Play,
@@ -14,7 +12,8 @@ import {
   Trophy,
   ArrowRight,
   Sparkles,
-  CheckCircle2
+  CheckCircle2,
+  HeartPulse
 } from 'lucide-react';
 import { WorkoutRunnerModal } from '../components/workout/WorkoutRunnerModal.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -31,7 +30,7 @@ export const DashboardPage = ({ setActiveTab }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const planId = user?.assignedPlanId || 'plan-1';
+      const planId = user?.assignedPlanId || user?.assignedExercisePlanId || 'plan-1';
       const [planData, wellData, analyticsData] = await Promise.all([
         api.plans.getById(planId).catch(() => null),
         api.wellness.getToday().catch(() => null),
@@ -108,7 +107,7 @@ export const DashboardPage = ({ setActiveTab }) => {
               Welcome back, {user?.name?.split(' ')[0] || 'Athlete'}! ✨
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '580px' }}>
-              "Consistency compounds into strength." You are on a {user?.currentStreak || 1}-day active streak. Keep your momentum strong today!
+              Your personalized Swasthya plan is active. Continue your daily workouts, guided meditation, and yoga sessions directly below.
             </p>
           </div>
 
@@ -119,7 +118,7 @@ export const DashboardPage = ({ setActiveTab }) => {
               style={{ padding: '12px 20px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
               <Sparkles size={18} color="var(--emerald-primary)" />
-              <span>My Swasthya Plan</span>
+              <span>Calculate My Swasthya Plan</span>
             </button>
             <button
               onClick={() => setRunnerOpen(true)}
@@ -133,128 +132,27 @@ export const DashboardPage = ({ setActiveTab }) => {
         </div>
       </div>
 
-      {/* 4 Stat Metric Cards */}
-      <div className="grid-stats-cards">
-        {/* Streak */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Active Streak
-              </div>
-              <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
-                {user?.currentStreak || 1} <span style={{ fontSize: '1rem', color: '#f87171' }}>Days</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Longest: {user?.longestStreak || 1} days
-              </div>
-            </div>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'rgba(239, 68, 68, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Flame size={22} color="#ef4444" fill="#ef4444" />
-            </div>
-          </div>
-        </div>
-
-        {/* Total Points */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Wellness Points
-              </div>
-              <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
-                {user?.points || 0} <span style={{ fontSize: '1rem', color: '#fbbf24' }}>XP</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Level {user?.level || 1} • {150 - ((user?.points || 0) % 150)} to Next Lvl
-              </div>
-            </div>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'rgba(245, 158, 11, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Zap size={22} color="#f59e0b" fill="#f59e0b" />
-            </div>
-          </div>
-        </div>
-
-        {/* BMI & Body Metrics */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                BMI Indicator
-              </div>
-              <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
-                {user?.profile?.bmi || 22.5}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: '2px', fontWeight: 600 }}>
-                {user?.profile?.bmiCategory || 'Normal weight'}
-              </div>
-            </div>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'rgba(16, 185, 129, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Scale size={22} color="var(--emerald-primary)" />
-            </div>
-          </div>
-        </div>
-
-        {/* Daily Water */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Daily Hydration
-              </div>
-              <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
-                {currentWater} <span style={{ fontSize: '0.9rem', color: '#38bdf8' }}>/ {goalWater}ml</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                {waterPercent}% of target
-              </div>
-            </div>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '12px',
-              background: 'rgba(6, 182, 212, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Droplets size={22} color="#06b6d4" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Row: Assigned Workout Hero + Quick Actions */}
       <div className="grid-dashboard-layout">
         {/* Today's Workout Card */}
         <div className="glass-panel" style={{ padding: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="badge-pill badge-emerald">Today's Assigned Routine</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span className="badge-pill badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} />
+                  <span>Active Swasthya Routine</span>
+                </span>
+                {assignedPlan?.goalType && (
+                  <span className="badge-pill badge-violet">{assignedPlan.goalType}</span>
+                )}
+                {assignedPlan?.durationDays && (
+                  <span className="badge-pill badge-amber">{assignedPlan.durationDays} Days/Wk</span>
+                )}
+                {assignedPlan?.level && (
+                  <span className="badge-pill" style={{ background: 'rgba(255, 255, 255, 0.08)', color: '#cbd5e1' }}>{assignedPlan.level}</span>
+                )}
+              </div>
               <button
                 onClick={() => setActiveTab('plans')}
                 style={{
@@ -273,11 +171,11 @@ export const DashboardPage = ({ setActiveTab }) => {
               </button>
             </div>
 
-            <h2 style={{ fontSize: '1.5rem', color: '#f8fafc', marginBottom: '6px' }}>
-              {assignedPlan?.title || 'Beginner Foundational Routine'}
+            <h2 style={{ fontSize: '1.65rem', color: '#f8fafc', marginBottom: '8px', fontWeight: 800 }}>
+              {assignedPlan?.title || 'Personalized Swasthya Routine'}
             </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.5, marginBottom: '20px' }}>
-              {assignedPlan?.description}
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '20px' }}>
+              {assignedPlan?.description || 'Personalized training protocol aligned with your goals and availability.'}
             </p>
 
             {/* Day 1 Focus Preview */}
@@ -285,15 +183,22 @@ export const DashboardPage = ({ setActiveTab }) => {
               background: 'rgba(255, 255, 255, 0.03)',
               border: '1px solid var(--border-glass)',
               borderRadius: '14px',
-              padding: '16px',
+              padding: '18px',
               display: 'flex',
               flexDirection: 'column',
               gap: '12px'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc' }}>
-                  {assignedPlan?.days?.[0]?.title || 'Day 1 Workout'}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>
+                    {assignedPlan?.days?.[0]?.title || 'Day 1 Workout'}
+                  </span>
+                  {assignedPlan?.days?.[0]?.focus && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--emerald-primary)', fontWeight: 600 }}>
+                      • {assignedPlan.days[0].focus}
+                    </span>
+                  )}
+                </div>
                 <span className="badge-pill badge-violet">
                   {assignedPlan?.days?.[0]?.exercises?.length || 4} Exercises
                 </span>
@@ -304,15 +209,16 @@ export const DashboardPage = ({ setActiveTab }) => {
                   <span
                     key={idx}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.04)',
+                      background: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid var(--border-glass)',
-                      padding: '4px 10px',
+                      padding: '6px 12px',
                       borderRadius: '8px',
-                      fontSize: '0.78rem',
+                      fontSize: '0.8rem',
                       color: '#cbd5e1'
                     }}
                   >
-                    {exRef.exercise?.name || 'Exercise ' + (idx + 1)} ({exRef.sets}×{exRef.reps})
+                    <strong style={{ color: '#f8fafc' }}>{exRef.exercise?.name || 'Exercise ' + (idx + 1)}</strong>{' '}
+                    <span style={{ color: 'var(--emerald-primary)' }}>({exRef.sets}×{exRef.reps})</span>
                   </span>
                 ))}
               </div>
@@ -323,10 +229,18 @@ export const DashboardPage = ({ setActiveTab }) => {
             <button
               onClick={() => setRunnerOpen(true)}
               className="btn-primary"
-              style={{ padding: '12px 28px', fontSize: '0.95rem' }}
+              style={{ padding: '14px 32px', fontSize: '1rem', fontWeight: 700 }}
             >
               <Play size={18} fill="#ffffff" />
-              <span>Start Interactive Workout</span>
+              <span>Start Workout Now</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('assessment')}
+              className="btn-secondary"
+              style={{ padding: '12px 20px', fontSize: '0.88rem' }}
+            >
+              <Sparkles size={16} color="var(--emerald-primary)" />
+              <span>Recalculate Plan</span>
             </button>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               ~35 mins • +50 Points reward
@@ -336,35 +250,55 @@ export const DashboardPage = ({ setActiveTab }) => {
 
         {/* Quick Holistic Wellness Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Quick Water Button */}
-          <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: 'rgba(6, 182, 212, 0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Droplets size={22} color="#06b6d4" />
+          {/* Quick Water Button & Progress */}
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  background: 'rgba(6, 182, 212, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Droplets size={22} color="#06b6d4" />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>Daily Hydration</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    {currentWater} / {goalWater}ml ({waterPercent}% target)
+                  </div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>Log 1 Glass Water</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>+250ml to your daily hydration</div>
-              </div>
+              <button
+                onClick={handleQuickWater}
+                className="btn-secondary"
+                style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+              >
+                + Drink 250ml
+              </button>
             </div>
-            <button
-              onClick={handleQuickWater}
-              className="btn-secondary"
-              style={{ padding: '8px 14px', fontSize: '0.8rem' }}
-            >
-              + Drink
-            </button>
+            {/* Hydration progress bar */}
+            <div style={{
+              width: '100%',
+              height: '6px',
+              borderRadius: '999px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${waterPercent}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #06b6d4, #38bdf8)',
+                borderRadius: '999px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
           </div>
 
-          {/* Quick Guided Breathing */}
+          {/* Quick Guided Breathing & Meditation */}
           <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
@@ -380,7 +314,7 @@ export const DashboardPage = ({ setActiveTab }) => {
               </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>Pranayama / Breathing</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>3-minute Box Breathing reset</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Mindful breathwork & meditation reset</div>
               </div>
             </div>
             <button
@@ -389,6 +323,34 @@ export const DashboardPage = ({ setActiveTab }) => {
               style={{ padding: '8px 14px', fontSize: '0.8rem' }}
             >
               Breathe
+            </button>
+          </div>
+
+          {/* Quick Yoga & Asanas Practice */}
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'rgba(52, 211, 153, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <HeartPulse size={22} color="#34d399" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>Yoga & Asana Flow</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Postures, balance, and alignment</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab('yoga')}
+              className="btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '0.8rem' }}
+            >
+              Practice
             </button>
           </div>
 

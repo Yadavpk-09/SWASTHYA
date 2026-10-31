@@ -42,7 +42,6 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
             Hatha & Vinyasa Alignment
           </span>
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Yoga & Asana Sanctuary</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Traditional Yogic asanas with Sanskrit etymology, breath synchronization, anatomical benefits, and contraindications.
         </p>
@@ -112,7 +111,7 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
             </div>
             <div>
               <h3 style={{ fontSize: '1.05rem', color: '#f8fafc' }}>Curated Meditation</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Sound Baths & Nidra (FR5.3)</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Sound Baths & Nidra</p>
             </div>
           </div>
           <ChevronRight size={20} color="#38bdf8" />
@@ -187,7 +186,7 @@ export const YogaLibraryPage = ({ setActiveTab }) => {
           }}
         >
           <Headphones size={15} />
-          <span>Curated Meditation Sanctuary (FR5.3)</span>
+          <span>Curated Meditation Sanctuary</span>
         </button>
       </div>
 

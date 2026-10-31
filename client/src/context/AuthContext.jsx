@@ -16,6 +16,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setTokenState] = useState(getAuthToken());
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
@@ -30,6 +31,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.auth.getMe();
       setUser(res.user);
+      if (res.user?.role === 'admin') {
+        setActiveTab('admin');
+      } else if (res.user?.isNewUser || res.user?.hasCompletedAssessment === false) {
+        // If new user has not completed assessment, direct to My Swasthya Plan
+        setActiveTab('assessment');
+      } else {
+        setActiveTab('dashboard');
+      }
     } catch (err) {
       console.warn('Session expired or server unavailable:', err.message);
       setAuthToken(null);
@@ -50,6 +59,12 @@ export const AuthProvider = ({ children }) => {
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      // Existing user logging in: lands directly on dashboard (or admin)
+      if (res.user?.role === 'admin') {
+        setActiveTab('admin');
+      } else {
+        setActiveTab('dashboard');
+      }
       showToast({
         type: 'success',
         title: 'Welcome Back!',
@@ -66,16 +81,41 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, phone = '', address = '', role = 'user') => {
+  const sendRegistrationOtp = async (details) => {
     try {
-      const res = await api.auth.register({ name, email, password, phone, address, role });
+      const res = await api.auth.sendRegistrationOtp(details);
+      showToast({
+        type: 'success',
+        title: 'Verification OTP Sent',
+        message: `A 6-digit OTP has been sent to ${res.email}.`
+      });
+      return res;
+    } catch (err) {
+      showToast({
+        type: 'error',
+        title: 'Could Not Send OTP',
+        message: err.message || 'Failed to send verification OTP'
+      });
+      throw err;
+    }
+  };
+
+  const register = async (name, email, password, phone = '', address = '', role = 'user', otp = '') => {
+    try {
+      const res = await api.auth.register({ name, email, password, phone, address, role, otp });
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      // New user creating their account: lands directly on "My Swasthya Plan" to generate future plan & goals!
+      if (res.user?.role === 'admin') {
+        setActiveTab('admin');
+      } else {
+        setActiveTab('assessment');
+      }
       showToast({
         type: 'success',
         title: 'Account Created!',
-        message: `Welcome to SWASTHYA, ${res.user.name}!`
+        message: `Welcome to SWASTHYA, ${res.user.name}! Please set up your personalized fitness & yoga plan.`
       });
       return res.user;
     } catch (err) {
@@ -94,6 +134,12 @@ export const AuthProvider = ({ children }) => {
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      // Existing demo persona lands on dashboard (or admin)
+      if (res.user?.role === 'admin') {
+        setActiveTab('admin');
+      } else {
+        setActiveTab('dashboard');
+      }
       showToast({
         type: 'success',
         title: 'Demo Persona Active',
@@ -116,10 +162,19 @@ export const AuthProvider = ({ children }) => {
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      // New Google signups land on assessment; existing Google users land on dashboard
+      const isNew = res.isNewUser || res.user?.isNewUser || res.user?.hasCompletedAssessment === false;
+      if (res.user?.role === 'admin') {
+        setActiveTab('admin');
+      } else if (isNew) {
+        setActiveTab('assessment');
+      } else {
+        setActiveTab('dashboard');
+      }
       showToast({
         type: 'success',
-        title: 'Google OAuth Connected',
-        message: `Signed in as ${res.user.name}`
+        title: isNew ? 'Welcome to SWASTHYA!' : 'Google OAuth Connected',
+        message: isNew ? `Account created for ${res.user.name}! Let's generate your personal plan.` : `Signed in as ${res.user.name}`
       });
       return res.user;
     } catch (err) {
@@ -136,6 +191,7 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(null);
     setTokenState(null);
     setUser(null);
+    setActiveTab('dashboard');
     showToast({
       type: 'info',
       title: 'Logged Out',
@@ -149,6 +205,7 @@ export const AuthProvider = ({ children }) => {
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      setActiveTab('admin');
       showToast({
         type: 'success',
         title: 'Admin Access Granted',
@@ -165,12 +222,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const adminRegister = async (name, email, password, phone = '', address = '') => {
+  const adminRegister = async (name, email, password, phone = '', address = '', otp = '') => {
     try {
-      const res = await api.auth.adminRegister({ name, email, password, phone, address });
+      const res = await api.auth.adminRegister({ name, email, password, phone, address, otp });
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      setActiveTab('admin');
       showToast({
         type: 'success',
         title: 'Admin Account Created',
@@ -193,6 +251,7 @@ export const AuthProvider = ({ children }) => {
       setAuthToken(res.token);
       setTokenState(res.token);
       setUser(res.user);
+      setActiveTab('admin');
       showToast({
         type: 'success',
         title: 'Admin OAuth Verified',
@@ -277,10 +336,13 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         loading,
+        activeTab,
+        setActiveTab,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         login,
         register,
+        sendRegistrationOtp,
         demoLogin,
         googleLogin,
         adminLogin,

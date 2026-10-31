@@ -126,12 +126,9 @@ export const ProgressPage = () => {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--emerald-primary)', marginBottom: '8px' }}>
             <ChartIcon size={20} />
             <span style={{ fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Longitudinal Physical Telemetry (Module 8)
+              Longitudinal Physical Telemetry
             </span>
           </div>
-          <h1 style={{ fontSize: '2.2rem', marginBottom: '8px', color: '#f8fafc' }}>
-            Weekly Weight & Progress Tracking
-          </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
             Scientific progress logging: prompt-based weekly weigh-ins to remove water weight volatility and track true plan adherence.
           </p>
@@ -160,7 +157,7 @@ export const ProgressPage = () => {
         {/* Weekly Prompt Reminder (FR8.1) */}
         <div>
           <span className="badge-pill badge-emerald" style={{ fontSize: '0.72rem' }}>
-            Weekly Cadence Protocol (FR8.1)
+            Weekly Cadence Protocol
           </span>
           <h3 style={{ fontSize: '1.25rem', color: '#f8fafc', marginTop: '6px' }}>
             Weekly Weigh-in Prompt
@@ -179,7 +176,7 @@ export const ProgressPage = () => {
           border: '1px solid rgba(255, 255, 255, 0.08)'
         }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-            Current Week vs Previous Week (FR8.3)
+            Current Week vs Previous Week
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginTop: '4px' }}>
             <span style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f8fafc' }}>
@@ -273,7 +270,7 @@ export const ProgressPage = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
               <h3 style={{ fontSize: '1.15rem', color: '#f8fafc' }}>Weight Over Weeks (kg)</h3>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Retained historical weekly trend line (FR8.2 & FR8.4)</p>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Retained historical weekly trend line</p>
             </div>
             <span className="badge-pill badge-emerald">Weekly Log</span>
           </div>
@@ -305,7 +302,7 @@ export const ProgressPage = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
               <h3 style={{ fontSize: '1.15rem', color: '#f8fafc' }}>Plan Adherence % & Volume</h3>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Adherence % to generated Swasthya plan (FR8.2)</p>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Adherence % to generated Swasthya plan</p>
             </div>
             <span className="badge-pill badge-violet">Adherence</span>
           </div>
@@ -410,7 +407,7 @@ export const ProgressPage = () => {
         }}>
           <div className="glass-panel" style={{ width: '100%', maxWidth: '460px', padding: '28px' }}>
             <h3 style={{ fontSize: '1.3rem', color: '#f8fafc', marginBottom: '6px' }}>
-              Weekly Weigh-In Check-In (FR8.1)
+              Weekly Weigh-In Check-In
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
               Log weight and optional body tape circumferences for your rolling weekly assessment.

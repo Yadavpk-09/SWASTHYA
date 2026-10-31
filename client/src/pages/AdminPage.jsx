@@ -346,10 +346,9 @@ export const AdminPage = () => {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#a78bfa', marginBottom: '8px' }}>
           <ShieldCheck size={20} />
           <span style={{ fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            SWASTHYA Admin Console (Module 12)
+            SWASTHYA Admin Console
           </span>
         </div>
-        <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Platform Administration</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Platform oversight, user governance, and full CRUD management for exercises, asanas, breathing techniques, workout splits, diet plans, and stress roadmap steps.
         </p>
@@ -358,14 +357,14 @@ export const AdminPage = () => {
       {/* Admin Subtabs */}
       <div className="scroll-x-touch" style={{ borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
         {[
-          { id: 'overview', label: 'Platform Metrics (FR12.5)' },
-          { id: 'users', label: `Users (${usersList.length}) (FR12.2, FR12.6)` },
-          { id: 'exercises', label: `Exercises (${exercisesList.length}) (FR12.3)` },
-          { id: 'asanas', label: `Asanas (${asanasList.length}) (FR12.3)` },
-          { id: 'plans', label: `Workout Plans (${plansList.length}) (FR12.3)` },
-          { id: 'breathing', label: `Breathing (${breathingList.length}) (FR12.3)` },
-          { id: 'diet', label: `Diet Plans (${dietPlansList.length}) (FR12.3)` },
-          { id: 'roadmaps', label: 'Stress Roadmaps (FR12.4)' }
+          { id: 'overview', label: 'Platform Metrics' },
+          { id: 'users', label: `Users (${usersList.length})` },
+          { id: 'exercises', label: `Exercises (${exercisesList.length})` },
+          { id: 'asanas', label: `Asanas (${asanasList.length})` },
+          { id: 'plans', label: `Workout Plans (${plansList.length})` },
+          { id: 'breathing', label: `Breathing (${breathingList.length})` },
+          { id: 'diet', label: `Diet Plans (${dietPlansList.length})` },
+          { id: 'roadmaps', label: 'Stress Roadmaps' }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -962,7 +961,7 @@ export const AdminPage = () => {
           {/* Form to Add Workout Plan */}
           <div className="glass-panel" style={{ padding: '24px', height: 'fit-content' }}>
             <h3 style={{ fontSize: '1.2rem', color: '#f8fafc', marginBottom: '16px' }}>
-              Create Curated Plan Template (FR9.3)
+              Create Curated Plan Template
             </h3>
 
             <form onSubmit={handleCreatePlan} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -1442,7 +1441,7 @@ export const AdminPage = () => {
       {activeAdminTab === 'roadmaps' && roadmapsData && (
         <div className="glass-panel" style={{ padding: '24px' }}>
           <h3 style={{ fontSize: '1.2rem', color: '#f8fafc', marginBottom: '4px' }}>
-            Stress Management Roadmap Sequence Editor (FR12.4)
+            Stress Management Roadmap Sequence Editor
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
             Configure and tune the sequential steps, duration, and sequence rationale for each stress category.

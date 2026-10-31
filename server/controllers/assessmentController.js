@@ -82,10 +82,14 @@ export const submitAssessment = async (req, res) => {
     // Execute rule-based decision engine to generate package in one pass
     const planPackage = generateFullSwasthyaPlan(assessment, updatedUser);
 
+    const finalUser = db.findById('users', userId);
+    const { passwordHash: _, ...safeUser } = finalUser || {};
+
     res.status(201).json({
       message: 'Assessment completed and personalized plan package generated!',
       assessment,
-      planPackage
+      planPackage,
+      user: safeUser
     });
   } catch (err) {
     console.error('Assessment submission error:', err);

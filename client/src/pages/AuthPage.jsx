@@ -1,5 +1,5 @@
 // client/src/pages/AuthPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import {
@@ -21,6 +21,13 @@ import {
   X,
   Plus
 } from 'lucide-react';
+import { api } from '../services/api.js';
+import {
+  validateName,
+  validateEmailFormat,
+  validatePhoneNumber,
+  validateAddress
+} from '../utils/authValidators.js';
 
 export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
   const [role, setRole] = useState(initialRole); // 'user' | 'admin'
@@ -44,6 +51,63 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
+  // Sign Up OTP Verification State
+  const [signupStep, setSignupStep] = useState('form'); // 'form' | 'otp'
+  const [signupOtp, setSignupOtp] = useState('');
+  const [generatedSignupOtp, setGeneratedSignupOtp] = useState('');
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCooldown]);
+
+  // Domain Verification State & Live Validations
+  const [domainStatus, setDomainStatus] = useState(null); // { loading, valid, verified, message }
+  const nameValidation = validateName(name);
+  const emailValidation = validateEmailFormat(email);
+  const phoneValidation = validatePhoneNumber(phone);
+  const addressValidation = validateAddress(address);
+  const phoneDigitsCount = phone.replace(/\D/g, '').length;
+
+  const handleEmailBlur = async () => {
+    if (!email.trim()) return;
+    const emailRes = validateEmailFormat(email);
+    if (!emailRes.valid) {
+      setDomainStatus({
+        loading: false,
+        valid: false,
+        message: emailRes.error
+      });
+      return;
+    }
+
+    setDomainStatus({ loading: true, valid: true, message: 'Verifying domain on internet...' });
+    try {
+      const res = await api.auth.verifyEmailDomain(email.trim());
+      if (res.valid) {
+        setDomainStatus({
+          loading: false,
+          valid: true,
+          verified: res.verified,
+          message: res.warning || (res.internal ? 'Internal Campus Domain' : 'Domain Active & MX Verified')
+        });
+      } else {
+        setDomainStatus({
+          loading: false,
+          valid: false,
+          verified: false,
+          message: res.error || 'Domain does not exist on internet'
+        });
+      }
+    } catch (err) {
+      setDomainStatus(null);
+    }
+  };
+
   // Google Account Chooser Modal state
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [isEnteringCustomGoogle, setIsEnteringCustomGoogle] = useState(false);
@@ -53,6 +117,7 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
   const {
     login,
     register,
+    sendRegistrationOtp,
     googleLogin,
     adminLogin,
     adminRegister,
@@ -67,7 +132,31 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
     setRole(newRole);
     setMode('login');
     setStep('request');
+    setSignupStep('form');
     if (onRoleChange) onRoleChange(newRole);
+  };
+
+  const handleResendSignupOtp = async () => {
+    if (otpCooldown > 0) return;
+    setLoading(true);
+    try {
+      const phoneRes = validatePhoneNumber(phone);
+      const addressRes = validateAddress(address);
+      const res = await sendRegistrationOtp({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phoneRes.valid ? phoneRes.formatted : phone.trim(),
+        address: addressRes.valid ? addressRes.formatted : address.trim(),
+        role
+      });
+      setGeneratedSignupOtp(res.otp);
+      setSignupOtp(res.otp);
+      setOtpCooldown(30);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAuthSubmit = async (e) => {
@@ -76,37 +165,128 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
 
     try {
       if (mode === 'signup') {
-        if (password !== confirmPassword) {
+        if (signupStep === 'form') {
+          // 1. Verify Full Name
+          const nameRes = validateName(name);
+          if (!nameRes.valid) {
+            showToast({
+              type: 'error',
+              title: 'Invalid Name',
+              message: nameRes.error
+            });
+            setLoading(false);
+            return;
+          }
+
+          // 2. Verify Email Format & Structure
+          const emailRes = validateEmailFormat(email);
+          if (!emailRes.valid) {
+            showToast({
+              type: 'error',
+              title: 'Invalid Email Format',
+              message: emailRes.error
+            });
+            setLoading(false);
+            return;
+          }
+
+          // 3. Verify Phone Number (Must be exactly 10 digits)
+          const phoneRes = validatePhoneNumber(phone);
+          if (!phoneRes.valid) {
+            showToast({
+              type: 'error',
+              title: 'Invalid Phone Number',
+              message: phoneRes.error
+            });
+            setLoading(false);
+            return;
+          }
+
+          // 4. Verify Residential Address Format
+          const addressRes = validateAddress(address);
+          if (!addressRes.valid) {
+            showToast({
+              type: 'error',
+              title: 'Invalid Address Format',
+              message: addressRes.error
+            });
+            setLoading(false);
+            return;
+          }
+
+          if (password !== confirmPassword) {
+            showToast({
+              type: 'error',
+              title: 'Password Mismatch',
+              message: 'Passwords do not match. Please re-enter.'
+            });
+            setLoading(false);
+            return;
+          }
+
+          if (password.length < 6) {
+            showToast({
+              type: 'error',
+              title: 'Password Too Short',
+              message: 'Password must be at least 6 characters.'
+            });
+            setLoading(false);
+            return;
+          }
+
+          // Send verification OTP to verify email existence
+          const res = await sendRegistrationOtp({
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            phone: phoneRes.formatted,
+            address: addressRes.formatted,
+            role
+          });
+
+          setGeneratedSignupOtp(res.otp);
+          setSignupOtp(res.otp);
+          setSignupStep('otp');
+          setOtpCooldown(30);
+          setLoading(false);
+          return;
+        }
+
+        // signupStep === 'otp'
+        if (!signupOtp || signupOtp.trim().length !== 6) {
           showToast({
             type: 'error',
-            title: 'Password Mismatch',
-            message: 'Passwords do not match. Please re-enter.'
+            title: 'OTP Required',
+            message: 'Please enter the complete 6-digit verification OTP.'
           });
           setLoading(false);
           return;
         }
 
-        if (password.length < 6) {
-          showToast({
-            type: 'error',
-            title: 'Password Too Short',
-            message: 'Password must be at least 6 characters.'
-          });
-          setLoading(false);
-          return;
-        }
+        const phoneRes = validatePhoneNumber(phone);
+        const addressRes = validateAddress(address);
 
         if (role === 'admin') {
-          await adminRegister(name, email, password, phone, address);
+          await adminRegister(name.trim(), email.trim().toLowerCase(), password, phoneRes.formatted, addressRes.formatted, signupOtp.trim());
         } else {
-          await register(name, email, password, phone, address);
+          await register(name.trim(), email.trim().toLowerCase(), password, phoneRes.formatted, addressRes.formatted, role, signupOtp.trim());
         }
       } else {
-        // Sign In
+        // Sign In - Check Email Format
+        const emailRes = validateEmailFormat(email);
+        if (!emailRes.valid) {
+          showToast({
+            type: 'error',
+            title: 'Invalid Email Format',
+            message: emailRes.error
+          });
+          setLoading(false);
+          return;
+        }
+
         if (role === 'admin') {
-          await adminLogin(email, password);
+          await adminLogin(email.trim().toLowerCase(), password);
         } else {
-          await login(email, password);
+          await login(email.trim().toLowerCase(), password);
         }
       }
     } catch (err) {
@@ -171,6 +351,29 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
   const handleCustomGoogleSubmit = async (e) => {
     e.preventDefault();
     if (!customGoogleEmail) return;
+
+    const emailRes = validateEmailFormat(customGoogleEmail);
+    if (!emailRes.valid) {
+      showToast({
+        type: 'error',
+        title: 'Invalid Google Email',
+        message: emailRes.error
+      });
+      return;
+    }
+
+    if (customGoogleName.trim()) {
+      const nameRes = validateName(customGoogleName);
+      if (!nameRes.valid) {
+        showToast({
+          type: 'error',
+          title: 'Invalid Name',
+          message: nameRes.error
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     setShowGoogleModal(false);
     const chosenEmail = customGoogleEmail.trim().toLowerCase();
@@ -206,6 +409,16 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
         type: 'error',
         title: 'Email Required',
         message: 'Please enter your registered email address.'
+      });
+      return;
+    }
+
+    const emailRes = validateEmailFormat(email);
+    if (!emailRes.valid) {
+      showToast({
+        type: 'error',
+        title: 'Invalid Email Format',
+        message: emailRes.error
       });
       return;
     }
@@ -619,7 +832,7 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
             }}>
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => { setMode('login'); setSignupStep('form'); }}
                 style={{
                   padding: '9px',
                   border: 'none',
@@ -657,197 +870,435 @@ export const AuthPage = ({ initialRole = 'user', onRoleChange }) => {
               </button>
             </div>
 
-            {/* Email + Password Form */}
-            <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {mode === 'signup' && (
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    {isThemeAdmin ? 'Administrator Full Name' : 'Full Name'}
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <User size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                    <input
-                      type="text"
-                      required
-                      placeholder={isThemeAdmin ? 'e.g. Dr. Rajesh Sharma' : 'e.g. Riya Sharma'}
-                      className="input-field"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      style={{ paddingLeft: '38px' }}
-                    />
-                  </div>
+            {mode === 'signup' && signupStep === 'otp' ? (
+              /* OTP VERIFICATION VIEW TO VERIFY EMAIL EXISTENCE */
+              <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSignupStep('form')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '0.82rem',
+                      padding: 0
+                    }}
+                  >
+                    <ArrowLeft size={15} /> Edit Details / Change Email
+                  </button>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    background: isThemeAdmin ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                    color: isThemeAdmin ? '#fbbf24' : 'var(--emerald-primary)'
+                  }}>
+                    Email Verification Step
+                  </span>
                 </div>
-              )}
 
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  {isThemeAdmin ? 'Administrator Official Email' : 'Email Address'}
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Mail size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                  <input
-                    type="email"
-                    required
-                    placeholder={isThemeAdmin ? 'admin@swasthya.edu' : 'athlete@campus.edu'}
-                    className="input-field"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={{ paddingLeft: '38px' }}
-                  />
-                </div>
-              </div>
-
-              {/* Personal Details at registration: Phone & Address */}
-              {mode === 'signup' && (
-                <>
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Phone Number
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <Phone size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                      <input
-                        type="tel"
-                        required
-                        placeholder="+91 98765 43210"
-                        className="input-field"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        style={{ paddingLeft: '38px' }}
-                      />
-                    </div>
+                <div style={{
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  background: isThemeAdmin ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                  border: isThemeAdmin ? '1px solid rgba(245, 158, 11, 0.35)' : '1px solid rgba(16, 185, 129, 0.35)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Mail size={18} color={isThemeAdmin ? '#fbbf24' : 'var(--emerald-primary)'} />
+                    <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#ffffff' }}>
+                      Verify Email Address Exists
+                    </span>
                   </div>
+                  <p style={{ fontSize: '0.82rem', color: '#cbd5e1', margin: 0, lineHeight: 1.5 }}>
+                    To confirm this email address really exists and belongs to you, enter the 6-digit verification OTP sent to <strong style={{ color: '#ffffff' }}>{email}</strong>.
+                  </p>
 
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                      Residential Address / Campus Hostel Location
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <MapPin size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Hostel 4, Room 204, North Campus, New Delhi"
-                        className="input-field"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        style={{ paddingLeft: '38px' }}
-                      />
+                  {/* Instant Verification Code Helper Banner */}
+                  {generatedSignupOtp && (
+                    <div style={{
+                      marginTop: '4px',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Verification OTP:</span>
+                      <strong style={{ color: isThemeAdmin ? '#fbbf24' : '#34d399', letterSpacing: '0.2em', fontSize: '1.15rem' }}>
+                        {generatedSignupOtp}
+                      </strong>
                     </div>
-                  </div>
-                </>
-              )}
-
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    {isThemeAdmin ? 'Master Password' : 'Password'}
-                  </label>
-                  {mode === 'login' && (
-                    <button
-                      type="button"
-                      onClick={() => { setMode('forgot_password'); setStep('request'); }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: isThemeAdmin ? '#fbbf24' : 'var(--emerald-primary)',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        padding: 0
-                      }}
-                    >
-                      Forgot Password?
-                    </button>
                   )}
                 </div>
 
-                <div style={{ position: 'relative' }}>
-                  <Lock size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="••••••••••••"
-                    className="input-field"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{ paddingLeft: '38px', paddingRight: '38px' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '12px',
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--text-muted)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              {mode === 'signup' && (
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Confirm Password
+                    Enter 6-Digit Email OTP
                   </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="e.g. 123456"
+                    className="input-field"
+                    value={signupOtp}
+                    onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    style={{ textAlign: 'center', letterSpacing: '0.25em', fontSize: '1.25rem', fontWeight: 700 }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '13px',
+                    fontSize: '0.95rem',
+                    background: isThemeAdmin ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
+                    boxShadow: isThemeAdmin ? '0 4px 18px rgba(245, 158, 11, 0.35)' : undefined
+                  }}
+                >
+                  <span>{loading ? 'Verifying OTP & Creating Account...' : 'Confirm OTP & Complete Registration'}</span>
+                  <CheckCircle2 size={16} />
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    disabled={loading || otpCooldown > 0}
+                    onClick={handleResendSignupOtp}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: otpCooldown > 0 ? 'var(--text-muted)' : (isThemeAdmin ? '#fbbf24' : 'var(--emerald-primary)'),
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      cursor: otpCooldown > 0 ? 'default' : 'pointer'
+                    }}
+                  >
+                    {otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'Resend Verification OTP'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Email + Password Form */
+              <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {mode === 'signup' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        {isThemeAdmin ? 'Administrator Full Name' : 'Full Name'}
+                      </label>
+                      {name.trim() && (
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: nameValidation.valid ? 'var(--emerald-primary)' : '#f87171'
+                        }}>
+                          {nameValidation.valid ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                          <span>{nameValidation.valid ? 'Valid Name' : nameValidation.error}</span>
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                      <User size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                      <input
+                        type="text"
+                        required
+                        placeholder={isThemeAdmin ? 'e.g. Dr. Rajesh Sharma' : 'e.g. Riya Sharma'}
+                        className="input-field"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        style={{
+                          paddingLeft: '38px',
+                          borderColor: name.trim() ? (nameValidation.valid ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.55)') : undefined
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      {isThemeAdmin ? 'Administrator Official Email' : 'Email Address'}
+                    </label>
+                    {email.trim() && (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: !emailValidation.valid
+                          ? '#f87171'
+                          : domainStatus?.loading
+                          ? '#94a3b8'
+                          : domainStatus && !domainStatus.valid
+                          ? '#f87171'
+                          : 'var(--emerald-primary)'
+                      }}>
+                        {domainStatus?.loading ? (
+                          <span>Checking domain...</span>
+                        ) : domainStatus && !domainStatus.valid ? (
+                          <><AlertCircle size={12} /> {domainStatus.message}</>
+                        ) : emailValidation.valid ? (
+                          <><CheckCircle2 size={12} /> {domainStatus?.verified ? 'Active Domain (MX)' : 'Valid Format'}</>
+                        ) : (
+                          <><AlertCircle size={12} /> {emailValidation.error}</>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <input
+                      type="email"
+                      required
+                      placeholder={isThemeAdmin ? 'admin@swasthya.edu' : 'athlete@campus.edu'}
+                      className="input-field"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setDomainStatus(null);
+                      }}
+                      onBlur={handleEmailBlur}
+                      style={{
+                        paddingLeft: '38px',
+                        borderColor: email.trim()
+                          ? (emailValidation.valid && (!domainStatus || domainStatus.valid)
+                              ? 'rgba(16, 185, 129, 0.45)'
+                              : 'rgba(239, 68, 68, 0.55)')
+                          : undefined
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Personal Details at registration: Phone & Address */}
+                {mode === 'signup' && (
+                  <>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          Phone Number (10 Digits Only)
+                        </label>
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: phoneValidation.valid
+                            ? 'var(--emerald-primary)'
+                            : (phoneDigitsCount > 0 ? '#f59e0b' : 'var(--text-muted)')
+                        }}>
+                          {phoneValidation.valid ? <CheckCircle2 size={12} /> : (phoneDigitsCount > 0 ? <AlertCircle size={12} /> : null)}
+                          <span>
+                            Digits: {phoneDigitsCount} / 10 {phoneValidation.valid ? '✓ (Valid 10 Digits)' : '(Must be exactly 10 digits)'}
+                          </span>
+                        </span>
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <Phone size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                        <input
+                          type="tel"
+                          required
+                          maxLength={15}
+                          placeholder="e.g. 9876543210 or +91 98765 43210"
+                          className="input-field"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          style={{
+                            paddingLeft: '38px',
+                            borderColor: phone.trim()
+                              ? (phoneValidation.valid
+                                  ? 'rgba(16, 185, 129, 0.45)'
+                                  : 'rgba(245, 158, 11, 0.55)')
+                              : undefined
+                          }}
+                        />
+                      </div>
+                      {phone.trim() && !phoneValidation.valid && (
+                        <div style={{ fontSize: '0.73rem', color: '#f87171', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <AlertCircle size={12} />
+                          <span>{phoneValidation.error}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          Residential Address / Campus Hostel Location
+                        </label>
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: addressValidation.valid ? 'var(--emerald-primary)' : (address.trim().length > 0 ? '#f59e0b' : 'var(--text-muted)')
+                        }}>
+                          {addressValidation.valid ? <CheckCircle2 size={12} /> : (address.trim().length > 0 ? <AlertCircle size={12} /> : null)}
+                          <span>{address.trim().length} chars (Min 10)</span>
+                        </span>
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <MapPin size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Hostel 4, Room 204, North Campus, New Delhi"
+                          className="input-field"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          style={{
+                            paddingLeft: '38px',
+                            borderColor: address.trim()
+                              ? (addressValidation.valid
+                                  ? 'rgba(16, 185, 129, 0.45)'
+                                  : 'rgba(245, 158, 11, 0.55)')
+                              : undefined
+                          }}
+                        />
+                      </div>
+                      {address.trim() && !addressValidation.valid && (
+                        <div style={{ fontSize: '0.73rem', color: '#f87171', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <AlertCircle size={12} />
+                          <span>{addressValidation.error}</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      {isThemeAdmin ? 'Master Password' : 'Password'}
+                    </label>
+                    {mode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => { setMode('forgot_password'); setStep('request'); }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: isThemeAdmin ? '#fbbf24' : 'var(--emerald-primary)',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0
+                        }}
+                      >
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
+
                   <div style={{ position: 'relative' }}>
                     <Lock size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
-                      placeholder="Re-enter your password"
+                      placeholder="••••••••••••"
                       className="input-field"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      style={{ paddingLeft: '38px' }}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      style={{ paddingLeft: '38px', paddingRight: '38px' }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '12px',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
-              )}
 
-              {mode === 'signup' && isThemeAdmin && (
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
-                    <KeyRound size={14} /> Master Clearance Key (Optional Verification)
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="SWASTHYA-SECURE-2026"
-                    className="input-field"
-                    value={adminKey}
-                    onChange={(e) => setAdminKey(e.target.value)}
-                    style={{ borderColor: 'rgba(245, 158, 11, 0.4)' }}
-                  />
-                </div>
-              )}
+                {mode === 'signup' && (
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                      Confirm Password
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <Lock size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder="Re-enter your password"
+                        className="input-field"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        style={{ paddingLeft: '38px' }}
+                      />
+                    </div>
+                  </div>
+                )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  marginTop: '6px',
-                  fontSize: '0.95rem',
-                  background: isThemeAdmin ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
-                  boxShadow: isThemeAdmin ? '0 4px 18px rgba(245, 158, 11, 0.35)' : undefined
-                }}
-              >
-                <span>
-                  {mode === 'signup'
-                    ? (isThemeAdmin ? 'Register Administrator Account' : 'Create User Account & Start')
-                    : (isThemeAdmin ? 'Sign In as Administrator' : 'Sign In as User')}
-                </span>
-                <ArrowRight size={16} />
-              </button>
-            </form>
+                {mode === 'signup' && isThemeAdmin && (
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+                      <KeyRound size={14} /> Master Clearance Key (Optional Verification)
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="SWASTHYA-SECURE-2026"
+                      className="input-field"
+                      value={adminKey}
+                      onChange={(e) => setAdminKey(e.target.value)}
+                      style={{ borderColor: 'rgba(245, 158, 11, 0.4)' }}
+                    />
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginTop: '6px',
+                    fontSize: '0.95rem',
+                    background: isThemeAdmin ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
+                    boxShadow: isThemeAdmin ? '0 4px 18px rgba(245, 158, 11, 0.35)' : undefined
+                  }}
+                >
+                  <span>
+                    {mode === 'signup'
+                      ? (loading ? 'Sending Verification OTP...' : (isThemeAdmin ? 'Verify Email & Register Admin' : 'Verify Email & Create Account'))
+                      : (isThemeAdmin ? 'Sign In as Administrator' : 'Sign In as User')}
+                  </span>
+                  <ArrowRight size={16} />
+                </button>
+              </form>
+            )}
 
             {/* Google OAuth SSO Section (Opens Account Chooser) */}
             <div style={{ marginTop: '16px' }}>

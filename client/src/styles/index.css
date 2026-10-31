@@ -325,20 +325,20 @@ select.input-field option {
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-glass);
   position: fixed;
-  top: 70px;
+  top: 0;
   bottom: 0;
   left: 0;
   z-index: 48;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 14px;
+  padding: 0 14px 20px 14px;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (max-width: 1023px) {
   .sidebar-panel {
-    top: 64px;
+    top: 0;
     width: min(300px, 85vw);
     transform: translateX(-100%);
   }
@@ -346,6 +346,10 @@ select.input-field option {
     transform: translateX(0);
     box-shadow: 12px 0 35px rgba(0, 0, 0, 0.7);
   }
+}
+
+.lg-visible {
+  display: none !important;
 }
 
 @media (min-width: 1024px) {
@@ -357,6 +361,9 @@ select.input-field option {
   }
   .lg-hidden {
     display: none !important;
+  }
+  .lg-visible {
+    display: flex !important;
   }
 }
 

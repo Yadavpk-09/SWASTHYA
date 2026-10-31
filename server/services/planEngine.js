@@ -155,6 +155,7 @@ export function generateFullSwasthyaPlan(assessment, user) {
 
   // Update user active plan pointers
   db.updateById('users', user.id, {
+    assignedPlanId: exercisePlan ? exercisePlan.id : 'plan-1',
     assignedExercisePlanId: exercisePlan ? exercisePlan.id : 'plan-1',
     assignedDietPlanId: dietPlan ? dietPlan.id : 'diet-1',
     assignedRoadmapId: meditationRecommended ? (stressLevel || 'medium') : 'low',
@@ -162,9 +163,12 @@ export function generateFullSwasthyaPlan(assessment, user) {
     lastActiveAt: new Date().toISOString()
   });
 
+  const updatedUserInDb = db.findById('users', user.id);
+  const { passwordHash: _, ...safeUser } = updatedUserInDb || {};
+
   return {
     packageId: generatedPlan.id,
-    user: db.findById('users', user.id),
+    user: safeUser,
     exercisePlan,
     dietPlan,
     meditationRecommended,

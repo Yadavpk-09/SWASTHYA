@@ -23,19 +23,18 @@ import { AdminPage } from './pages/AdminPage.jsx';
 import { AssessmentPage } from './pages/AssessmentPage.jsx';
 
 const MainApp = () => {
-  const { isAuthenticated, loading, isAdmin, user } = useAuth();
-  const [activeTab, setActiveTab] = useState(isAdmin ? 'admin' : 'dashboard');
+  const { isAuthenticated, loading, isAdmin, user, activeTab, setActiveTab } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authSurface, setAuthSurface] = useState(
     typeof window !== 'undefined' && window.location.pathname.startsWith('/admin') ? 'admin' : 'user'
   );
 
-  // Sync initial tab when user logs in
+  // Sync initial tab when admin logs in
   React.useEffect(() => {
     if (isAdmin && activeTab !== 'admin') {
       setActiveTab('admin');
     }
-  }, [isAdmin]);
+  }, [isAdmin, activeTab]);
 
   if (loading) {
     return (
